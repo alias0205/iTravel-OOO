@@ -1,6 +1,6 @@
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { colors } from '../theme/colors';
+import { colors } from '../../../shared/theme/colors';
 
 export function LabeledInput({ label, error, containerStyle, inputStyle, rightAccessory, ...inputProps }) {
     return (

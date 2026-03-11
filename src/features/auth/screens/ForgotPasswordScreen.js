@@ -4,7 +4,7 @@ import { StyleSheet, Text } from 'react-native';
 import { AuthPrimaryButton } from '../components/AuthPrimaryButton';
 import { AuthScreenShell } from '../components/AuthScreenShell';
 import { LabeledInput } from '../components/LabeledInput';
-import { colors } from '../theme/colors';
+import { colors } from '../../../shared/theme/colors';
 import { hasValidationErrors, validateForgotPassword } from '../utils/authValidation';
 
 export function ForgotPasswordScreen({ navigation }) {

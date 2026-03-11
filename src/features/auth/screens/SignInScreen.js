@@ -6,7 +6,7 @@ import { AuthAgreement } from '../components/AuthAgreement';
 import { AuthPrimaryButton } from '../components/AuthPrimaryButton';
 import { AuthScreenShell } from '../components/AuthScreenShell';
 import { LabeledInput } from '../components/LabeledInput';
-import { colors } from '../theme/colors';
+import { colors } from '../../../shared/theme/colors';
 import { hasValidationErrors, validateSignIn } from '../utils/authValidation';
 
 export function SignInScreen({ navigation }) {
@@ -43,6 +43,8 @@ export function SignInScreen({ navigation }) {
 
         try {
             await new Promise((resolve) => setTimeout(resolve, 1000));
+            navigation.replace('ConsultantDashboard');
+            // navigation.replace('ApprovalDashboard');
         } finally {
             setIsSubmitting(false);
         }

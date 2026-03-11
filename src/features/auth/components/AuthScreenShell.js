@@ -2,11 +2,11 @@ import { FontAwesome } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { BrandLogo } from '../components/BrandLogo';
-import { colors } from '../theme/colors';
+import { colors } from '../../../shared/theme/colors';
+import { BrandLogo } from './BrandLogo';
 import { SocialIconButton } from './SocialIconButton';
 
-const topBackgroundSource = require('../../assets/nutra/top-bg.png');
+const topBackgroundSource = require('../../../../assets/nutra/top-bg.png');
 
 export function AuthScreenShell({ title, children, footerPrefix, footerActionLabel, onFooterActionPress, showSocialSection = true }) {
     return (

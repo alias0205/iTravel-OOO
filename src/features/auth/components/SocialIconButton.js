@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet } from 'react-native';
 
-import { colors } from '../theme/colors';
+import { colors } from '../../../shared/theme/colors';
 
 export function SocialIconButton({ children, onPress }) {
     return (

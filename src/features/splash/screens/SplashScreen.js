@@ -1,13 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useEffect, useRef } from 'react';
-import {
-    Animated,
-    Easing,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    View,
-} from 'react-native';
+import { Animated, Easing, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 
 const splashColors = {
     background: '#005F5B',
@@ -26,11 +19,7 @@ const SPLASH_ROUTE_DELAY = 2800;
 const ENTRANCE_DURATION = 650;
 
 function LoadingDots() {
-    const dotAnimations = useRef([
-        new Animated.Value(0.35),
-        new Animated.Value(0.35),
-        new Animated.Value(0.35),
-    ]).current;
+    const dotAnimations = useRef([new Animated.Value(0.35), new Animated.Value(0.35), new Animated.Value(0.35)]).current;
 
     useEffect(() => {
         const loops = dotAnimations.map((animatedValue, index) =>
@@ -169,22 +158,15 @@ export function SplashScreen({ navigation }) {
                             },
                         ]}
                     >
-                        <MaterialCommunityIcons
-                            color={splashColors.iconColor}
-                            name="airplane"
-                            size={34}
-                        />
+                        <MaterialCommunityIcons color={splashColors.iconColor} name="airplane" size={34} />
                     </Animated.View>
 
                     <Text style={styles.brandText}>
-                        <Text style={styles.brandStrong}>iTravel</Text>{' '}
-                        <Text style={styles.brandLight}>OOO</Text>
+                        <Text style={styles.brandStrong}>iTravel</Text> <Text style={styles.brandLight}>OOO</Text>
                     </Text>
 
                     <Text style={styles.title}>Out of Office made simple</Text>
-                    <Text style={styles.subtitle}>
-                        Streamline leave requests & team management
-                    </Text>
+                    <Text style={styles.subtitle}>Streamline leave requests & team management</Text>
 
                     <Animated.View
                         style={[

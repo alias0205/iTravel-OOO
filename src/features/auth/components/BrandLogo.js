@@ -1,8 +1,8 @@
 import { Image, StyleSheet, View } from 'react-native';
 
 const logoSources = {
-    dark: require('../../assets/nutra/logo-dark.png'),
-    light: require('../../assets/nutra/logo-light.png'),
+    dark: require('../../../../assets/nutra/logo-dark.png'),
+    light: require('../../../../assets/nutra/logo-light.png'),
 };
 
 export function BrandLogo({ variant = 'dark', containerStyle, imageStyle }) {

@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors } from '../theme/colors';
+import { colors } from '../../../shared/theme/colors';
 
 export function AuthAgreement({ checked, onPress, prefixText, links }) {
     return (

@@ -1,6 +1,6 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 
-import { colors } from '../theme/colors';
+import { colors } from '../../../shared/theme/colors';
 
 export function AuthPrimaryButton({ label, onPress, style, textStyle, disabled, loading }) {
     return (
