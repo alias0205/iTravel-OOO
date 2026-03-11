@@ -12,7 +12,7 @@ export function AuthPrimaryButton({ label, onPress, style, textStyle, disabled, 
 
 const styles = StyleSheet.create({
     button: {
-        height: 60,
+        height: 50,
         borderRadius: 999,
         backgroundColor: colors.primary,
         alignItems: 'center',

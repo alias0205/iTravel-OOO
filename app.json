@@ -1,13 +1,13 @@
 {
     "expo": {
-        "name": "mobile",
-        "slug": "mobile",
+        "name": "nutrastat",
+        "slug": "nutrastat",
         "version": "1.0.0",
         "orientation": "portrait",
-        "icon": "./assets/icon.png",
+        "icon": "./assets/CG.png",
         "userInterfaceStyle": "light",
         "splash": {
-            "image": "./assets/splash-icon.png",
+            "image": "./assets/CG.png",
             "resizeMode": "contain",
             "backgroundColor": "#ffffff"
         },
@@ -16,14 +16,14 @@
         },
         "android": {
             "adaptiveIcon": {
-                "backgroundColor": "#E6F4FE",
+                "backgroundColor": "#ffffff",
                 "foregroundImage": "./assets/android-icon-foreground.png",
                 "backgroundImage": "./assets/android-icon-background.png",
                 "monochromeImage": "./assets/android-icon-monochrome.png"
             }
         },
         "web": {
-            "favicon": "./assets/favicon.png"
+            "favicon": "./assets/SD.png"
         }
     }
 }

@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     inputShell: {
-        minHeight: 62,
+        minHeight: 50,
         borderWidth: 1.2,
         borderColor: colors.border,
         borderRadius: 14,
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.dangerSoft,
     },
     input: {
-        minHeight: 62,
+        minHeight: 50,
         paddingHorizontal: 18,
         fontSize: 16,
         color: colors.text,
