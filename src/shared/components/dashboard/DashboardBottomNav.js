@@ -8,11 +8,11 @@ const defaultItems = [
     { key: 'settings', label: 'Settings', icon: 'cog-outline' },
 ];
 
-export function DashboardBottomNav({ items = defaultItems, activeKey = 'home' }) {
+export function DashboardBottomNav({ items = defaultItems, activeKey = 'home', onItemPress }) {
     return (
         <View style={styles.container}>
             {items.map((item) => (
-                <Pressable key={item.key} style={styles.item}>
+                <Pressable key={item.key} onPress={() => onItemPress?.(item)} style={styles.item}>
                     <View style={[styles.iconWrap, item.key === activeKey ? styles.iconWrapActive : null]}>
                         <MaterialCommunityIcons color={item.key === activeKey ? '#FFFFFF' : '#767E8D'} name={item.icon} size={22} />
                         {item.badge ? (

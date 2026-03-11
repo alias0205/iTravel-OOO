@@ -6,7 +6,10 @@ import { SignInScreen } from '../../features/auth/screens/SignInScreen';
 import { SignUpScreen } from '../../features/auth/screens/SignUpScreen';
 import { ConsultantDashboardScreen } from '../../features/consultant/screens/ConsultantDashboardScreen';
 import { ConsultantNewRequestScreen } from '../../features/consultant/screens/ConsultantNewRequestScreen';
+import { ConsultantNotificationsScreen } from '../../features/consultant/screens/ConsultantNotificationsScreen';
+import { ConsultantRequestListScreen } from '../../features/consultant/screens/ConsultantRequestListScreen';
 import { ConsultantRequestDetailScreen } from '../../features/consultant/screens/ConsultantRequestDetailScreen';
+import { ConsultantSettingsScreen } from '../../features/consultant/screens/ConsultantSettingsScreen';
 import { SplashScreen } from '../../features/splash/screens/SplashScreen';
 
 const Stack = createNativeStackNavigator();
@@ -18,7 +21,10 @@ export function AppNavigator() {
             <Stack.Screen component={ApprovalDashboardScreen} name="ApprovalDashboard" />
             <Stack.Screen component={ConsultantDashboardScreen} name="ConsultantDashboard" />
             <Stack.Screen component={ConsultantNewRequestScreen} name="ConsultantNewRequest" />
+            <Stack.Screen component={ConsultantNotificationsScreen} name="ConsultantNotifications" />
+            <Stack.Screen component={ConsultantRequestListScreen} name="ConsultantRequestList" />
             <Stack.Screen component={ConsultantRequestDetailScreen} name="ConsultantRequestDetail" />
+            <Stack.Screen component={ConsultantSettingsScreen} name="ConsultantSettings" />
             <Stack.Screen component={ForgotPasswordScreen} name="ForgotPassword" />
             <Stack.Screen component={SignInScreen} name="SignIn" />
             <Stack.Screen component={SignUpScreen} name="SignUp" />

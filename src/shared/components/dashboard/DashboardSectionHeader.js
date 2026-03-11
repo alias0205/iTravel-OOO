@@ -1,11 +1,11 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-export function DashboardSectionHeader({ title, actionLabel }) {
+export function DashboardSectionHeader({ title, actionLabel, onActionPress }) {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>{title}</Text>
             {actionLabel ? (
-                <Pressable>
+                <Pressable onPress={onActionPress}>
                     <Text style={styles.action}>{actionLabel}</Text>
                 </Pressable>
             ) : null}
