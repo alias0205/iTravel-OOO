@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useMemo, useState } from 'react';
-import { Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { DashboardTopBar } from '../../../shared/components/dashboard/DashboardTopBar';
 import { DetailSectionCard } from '../../../shared/components/dashboard/DetailSectionCard';
@@ -27,7 +27,7 @@ function formatDate(dateValue) {
     return `${month}/${day}/${year}`;
 }
 
-function getRequestedDays(startDate, endDate, halfDay) {
+function getRequestedDays(startDate, endDate) {
     if (!startDate || !endDate) {
         return 0;
     }
@@ -46,7 +46,7 @@ function getRequestedDays(startDate, endDate, halfDay) {
         return 0;
     }
 
-    return halfDay ? 0.5 : inclusiveDays;
+    return inclusiveDays;
 }
 
 function formatDaysLabel(days) {
@@ -94,12 +94,10 @@ export function ConsultantNewRequestScreen({ navigation }) {
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
     const [activePickerField, setActivePickerField] = useState(null);
-    const [halfDay, setHalfDay] = useState(false);
     const [reason, setReason] = useState('');
     const [submitAttempted, setSubmitAttempted] = useState(false);
-    const [draftSaved, setDraftSaved] = useState(false);
 
-    const requestedDays = useMemo(() => getRequestedDays(startDate, endDate, halfDay), [endDate, halfDay, startDate]);
+    const requestedDays = useMemo(() => getRequestedDays(startDate, endDate), [endDate, startDate]);
     const hasDateOrderError = Boolean(startDate && endDate && normalizeDate(endDate) < normalizeDate(startDate));
     const isFormValid = Boolean(selectedLeaveType && startDate && endDate && !hasDateOrderError);
 
@@ -167,14 +165,8 @@ export function ConsultantNewRequestScreen({ navigation }) {
         );
     };
 
-    const handleSaveDraft = () => {
-        setDraftSaved(true);
-        setSubmitAttempted(false);
-    };
-
     const handleSubmit = () => {
         setSubmitAttempted(true);
-        setDraftSaved(false);
 
         if (!isFormValid) {
             return;
@@ -186,6 +178,13 @@ export function ConsultantNewRequestScreen({ navigation }) {
     return (
         <SafeAreaView style={styles.safeArea}>
             <DashboardTopBar avatarSource={consultantAvatar} leftIconName="menu" showBrandIcon showNotification={false} subtitle="Nutrastat" title="iTravel OOO" variant="light" />
+
+            <View style={styles.subHeader}>
+                <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+                    <MaterialCommunityIcons color="#3B4451" name="arrow-left" size={22} />
+                </Pressable>
+                <Text style={styles.subHeaderTitle}>New Leave Request</Text>
+            </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                 <View style={styles.pagePadding}>
@@ -252,14 +251,6 @@ export function ConsultantNewRequestScreen({ navigation }) {
                         {visibleErrors.endDate ? <Text style={styles.errorText}>{visibleErrors.endDate}</Text> : null}
                         {renderPicker('end')}
 
-                        <View style={styles.toggleCard}>
-                            <View style={styles.toggleCopy}>
-                                <Text style={styles.toggleTitle}>Half Day Request</Text>
-                                <Text style={styles.toggleSubtitle}>Request only half of the selected day(s)</Text>
-                            </View>
-                            <Switch onValueChange={setHalfDay} thumbColor="#FFFFFF" trackColor={{ false: '#D1D5DB', true: '#0A6B63' }} value={halfDay} />
-                        </View>
-
                         <FieldLabel>Reason/Notes</FieldLabel>
                         <View style={styles.textAreaShell}>
                             <TextInput
@@ -271,19 +262,6 @@ export function ConsultantNewRequestScreen({ navigation }) {
                                 textAlignVertical="top"
                                 value={reason}
                             />
-                        </View>
-
-                        <FieldLabel>Attachments (Optional)</FieldLabel>
-                        <View style={styles.uploadBox}>
-                            <View style={styles.uploadIconWrap}>
-                                <MaterialCommunityIcons color="#9CA3AF" name="cloud-upload-outline" size={34} />
-                            </View>
-                            <Text style={styles.uploadTitle}>Drop files here or click to browse</Text>
-                            <Text style={styles.uploadSubtitle}>Supports: PDF, DOC, DOCX, JPG, PNG</Text>
-                            <Text style={styles.uploadSubtitle}>(Max 5MB each)</Text>
-                            <Pressable style={styles.uploadButton}>
-                                <Text style={styles.uploadButtonText}>Choose Files</Text>
-                            </Pressable>
                         </View>
                     </DetailSectionCard>
 
@@ -297,11 +275,6 @@ export function ConsultantNewRequestScreen({ navigation }) {
                         <SummaryRow label="Remaining Balance:" value={summary.remainingBalance} valueTone="teal" />
                     </DetailSectionCard>
 
-                    {draftSaved ? <Text style={styles.helperText}>Draft saved locally.</Text> : null}
-
-                    <Pressable onPress={handleSaveDraft} style={[styles.footerButton, styles.footerButtonMuted]}>
-                        <Text style={styles.footerButtonMutedText}>Save as Draft</Text>
-                    </Pressable>
                     <Pressable onPress={handleSubmit} style={[styles.footerButton, styles.footerButtonPrimary, !isFormValid ? styles.footerButtonPrimaryDisabled : null]}>
                         <Text style={styles.footerButtonPrimaryText}>Submit Request</Text>
                     </Pressable>
@@ -315,6 +288,24 @@ const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
         backgroundColor: '#F4F5F7',
+    },
+    subHeader: {
+        backgroundColor: '#FFFFFF',
+        borderBottomWidth: 1,
+        borderBottomColor: '#E5E9EF',
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+    },
+    backButton: {
+        marginRight: 12,
+    },
+    subHeaderTitle: {
+        color: '#222B39',
+        fontSize: 16,
+        lineHeight: 22,
+        fontWeight: '800',
     },
     scrollContent: {
         paddingBottom: 18,
@@ -464,32 +455,6 @@ const styles = StyleSheet.create({
         fontSize: 12,
         lineHeight: 18,
     },
-    toggleCard: {
-        borderRadius: 14,
-        backgroundColor: '#F3F4F6',
-        paddingHorizontal: 16,
-        paddingVertical: 16,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: 22,
-    },
-    toggleCopy: {
-        flex: 1,
-        paddingRight: 12,
-    },
-    toggleTitle: {
-        color: '#1F2937',
-        fontSize: 15,
-        lineHeight: 20,
-        fontWeight: '700',
-        marginBottom: 4,
-    },
-    toggleSubtitle: {
-        color: '#5B6575',
-        fontSize: 14,
-        lineHeight: 20,
-    },
     textAreaShell: {
         borderRadius: 14,
         borderWidth: 1,
@@ -505,47 +470,6 @@ const styles = StyleSheet.create({
         color: '#1F2937',
         fontSize: 16,
         lineHeight: 26,
-    },
-    uploadBox: {
-        borderRadius: 16,
-        borderWidth: 1.5,
-        borderStyle: 'dashed',
-        borderColor: '#C9D2DE',
-        backgroundColor: '#FBFCFD',
-        alignItems: 'center',
-        paddingHorizontal: 18,
-        paddingVertical: 26,
-    },
-    uploadIconWrap: {
-        marginBottom: 10,
-    },
-    uploadTitle: {
-        color: '#4B5563',
-        fontSize: 16,
-        lineHeight: 22,
-        textAlign: 'center',
-        marginBottom: 8,
-    },
-    uploadSubtitle: {
-        color: '#6B7280',
-        fontSize: 13,
-        lineHeight: 18,
-        textAlign: 'center',
-    },
-    uploadButton: {
-        marginTop: 16,
-        height: 42,
-        borderRadius: 10,
-        backgroundColor: '#E5E7EB',
-        paddingHorizontal: 18,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    uploadButtonText: {
-        color: '#374151',
-        fontSize: 15,
-        lineHeight: 20,
-        fontWeight: '700',
     },
     summaryRow: {
         flexDirection: 'row',
@@ -589,24 +513,10 @@ const styles = StyleSheet.create({
     footerButtonPrimaryDisabled: {
         backgroundColor: '#7AA8A3',
     },
-    footerButtonMutedText: {
-        color: '#374151',
-        fontSize: 15,
-        lineHeight: 20,
-        fontWeight: '700',
-    },
     footerButtonPrimaryText: {
         color: '#FFFFFF',
         fontSize: 15,
         lineHeight: 20,
         fontWeight: '800',
-    },
-    helperText: {
-        color: '#0F766E',
-        fontSize: 14,
-        lineHeight: 20,
-        textAlign: 'center',
-        marginTop: -4,
-        marginBottom: 12,
     },
 });
