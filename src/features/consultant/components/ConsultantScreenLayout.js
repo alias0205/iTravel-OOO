@@ -1,8 +1,9 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { SafeAreaView, ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
+import { SafeAreaView, ScrollView, Text, View, Pressable } from 'react-native';
 
 import { DashboardBottomNav } from '../../../shared/components/dashboard/DashboardBottomNav';
 import { DashboardTopBar } from '../../../shared/components/dashboard/DashboardTopBar';
+import { ConsultantScreenLayoutStyles as styles } from '../../../styles';
 
 const consultantAvatar = require('../../../../assets/nutra/avatars/avatar-1.jpg');
 
@@ -81,7 +82,17 @@ export function ConsultantScreenLayout({
                 leftIconName="menu"
                 notificationCount={notificationCount}
                 onNotificationPress={() => navigation?.navigate('ConsultantNotifications')}
+                onSidebarSignOut={() =>
+                    navigation?.reset({
+                        index: 0,
+                        routes: [{ name: 'SignIn' }],
+                    })
+                }
+                sidebarProfileMeta="Nutrastat"
+                sidebarProfileName="Consultant Portal"
                 sidebarItems={navItems}
+                sidebarSubtitle="iTravel OOO"
+                sidebarTitle="Consultant Navigation"
                 showBrandIcon
                 showNotification={showNotification}
                 subtitle="Nutrastat"
@@ -106,59 +117,3 @@ export function ConsultantScreenLayout({
         </SafeAreaView>
     );
 }
-
-const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: '#F4F5F7',
-    },
-    headerCard: {
-        backgroundColor: '#FFFFFF',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E9EF',
-        paddingHorizontal: 16,
-        paddingTop: 14,
-        paddingBottom: 16,
-    },
-    headerInner: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    headerCopyRow: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingRight: 12,
-    },
-    backButton: {
-        width: 36,
-        height: 36,
-        borderRadius: 12,
-        backgroundColor: '#F3F5F8',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 12,
-    },
-    headerCopy: {
-        flex: 1,
-    },
-    headerTitle: {
-        color: '#1F2937',
-        fontSize: 18,
-        lineHeight: 24,
-        fontWeight: '800',
-    },
-    headerSubtitle: {
-        color: '#5B6575',
-        fontSize: 14,
-        lineHeight: 20,
-        marginTop: 2,
-    },
-    headerRight: {
-        marginLeft: 12,
-    },
-    scrollContent: {
-        paddingBottom: 18,
-    },
-});

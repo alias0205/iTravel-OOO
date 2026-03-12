@@ -1,5 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+
+import { StatusBadgeStyles as styles } from '../../../styles';
 
 const toneStyles = {
     pending: {
@@ -27,22 +29,3 @@ export function StatusBadge({ label, tone = 'pending' }) {
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        alignSelf: 'flex-start',
-        paddingHorizontal: 14,
-        paddingVertical: 4,
-        borderRadius: 999,
-    },
-    icon: {
-        marginRight: 4,
-    },
-    text: {
-        fontSize: 11,
-        lineHeight: 12,
-        fontWeight: '600',
-    },
-});

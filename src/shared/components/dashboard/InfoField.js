@@ -1,4 +1,6 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+
+import { InfoFieldStyles as styles } from '../../../styles';
 
 export function InfoField({ label, value }) {
     return (
@@ -8,21 +10,3 @@ export function InfoField({ label, value }) {
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        marginBottom: 16,
-    },
-    label: {
-        color: '#414B5A',
-        fontSize: 14,
-        lineHeight: 20,
-        fontWeight: '700',
-        marginBottom: 6,
-    },
-    value: {
-        color: '#242D39',
-        fontSize: 16,
-        lineHeight: 24,
-    },
-});

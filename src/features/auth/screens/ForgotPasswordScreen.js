@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { Text } from 'react-native';
 
 import { AuthPrimaryButton } from '../components/AuthPrimaryButton';
 import { AuthScreenShell } from '../components/AuthScreenShell';
 import { LabeledInput } from '../components/LabeledInput';
-import { colors } from '../../../shared/theme/colors';
+import { ForgotPasswordScreenStyles as styles, colors } from '../../../styles';
 import { hasValidationErrors, validateForgotPassword } from '../utils/authValidation';
 
 export function ForgotPasswordScreen({ navigation }) {
@@ -65,21 +65,3 @@ export function ForgotPasswordScreen({ navigation }) {
         </AuthScreenShell>
     );
 }
-
-const styles = StyleSheet.create({
-    description: {
-        marginBottom: 20,
-        fontSize: 15,
-        lineHeight: 24,
-        color: colors.mutedStrong,
-        textAlign: 'center',
-    },
-    successText: {
-        marginTop: -4,
-        marginBottom: 20,
-        fontSize: 14,
-        lineHeight: 20,
-        color: colors.primaryDark,
-        textAlign: 'center',
-    },
-});

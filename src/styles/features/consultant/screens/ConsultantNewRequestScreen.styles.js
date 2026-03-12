@@ -1,0 +1,219 @@
+import { StyleSheet } from 'react-native';
+
+const styles = StyleSheet.create({
+    scrollContent: {
+        paddingBottom: 24,
+    },
+    pagePadding: {
+        paddingHorizontal: 16,
+        paddingTop: 18,
+    },
+    balanceGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        marginHorizontal: -8,
+        marginBottom: -18,
+    },
+    balanceItem: {
+        width: '50%',
+        alignItems: 'center',
+        paddingHorizontal: 8,
+        marginBottom: 18,
+    },
+    balanceValue: {
+        color: '#0F766E',
+        fontSize: 26,
+        lineHeight: 30,
+        fontWeight: '800',
+        marginBottom: 4,
+    },
+    balanceValueOrange: {
+        color: '#EA580C',
+    },
+    balanceValueGold: {
+        color: '#CA8A04',
+    },
+    balanceValueSlate: {
+        color: '#475569',
+    },
+    balanceLabel: {
+        color: '#5B6575',
+        fontSize: 14,
+        lineHeight: 20,
+        textAlign: 'center',
+    },
+    fieldLabel: {
+        color: '#1F2937',
+        fontSize: 14,
+        lineHeight: 20,
+        fontWeight: '700',
+        marginBottom: 10,
+        marginTop: 2,
+    },
+    leaveTypeFieldWrap: {
+        position: 'relative',
+        zIndex: 20,
+    },
+    inputShell: {
+        minHeight: 46,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: '#C9D2DE',
+        backgroundColor: '#FFFFFF',
+        paddingHorizontal: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 18,
+    },
+    inputShellActive: {
+        borderColor: '#0A6B63',
+    },
+    inputShellError: {
+        borderColor: '#DC2626',
+    },
+    inputPlaceholder: {
+        color: '#9CA3AF',
+        fontSize: 16,
+        lineHeight: 22,
+    },
+    inputValue: {
+        color: '#1F2937',
+        fontSize: 16,
+        lineHeight: 22,
+    },
+    pickerWrap: {
+        marginTop: -8,
+        marginBottom: 18,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: '#D7DEE8',
+        backgroundColor: '#FFFFFF',
+        overflow: 'hidden',
+    },
+    pickerDoneButton: {
+        alignSelf: 'flex-end',
+        paddingHorizontal: 16,
+        paddingBottom: 12,
+    },
+    pickerDoneText: {
+        color: '#0A6B63',
+        fontSize: 14,
+        lineHeight: 20,
+        fontWeight: '700',
+    },
+    optionList: {
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: '#D7DEE8',
+        backgroundColor: '#FFFFFF',
+        overflow: 'hidden',
+    },
+    optionListOverlay: {
+        position: 'absolute',
+        top: 76,
+        left: 0,
+        right: 0,
+        zIndex: 30,
+        shadowColor: '#0F172A',
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 6 },
+        elevation: 6,
+    },
+    optionItem: {
+        minHeight: 46,
+        paddingHorizontal: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderBottomWidth: 1,
+        borderBottomColor: '#EEF2F5',
+    },
+    optionItemActive: {
+        backgroundColor: '#EEF8F6',
+    },
+    optionText: {
+        color: '#1F2937',
+        fontSize: 15,
+        lineHeight: 20,
+    },
+    optionTextActive: {
+        color: '#0A6B63',
+        fontWeight: '700',
+    },
+    errorText: {
+        marginTop: -10,
+        marginBottom: 12,
+        color: '#DC2626',
+        fontSize: 12,
+        lineHeight: 18,
+    },
+    textAreaShell: {
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: '#C9D2DE',
+        backgroundColor: '#FFFFFF',
+        minHeight: 122,
+        marginBottom: 22,
+    },
+    textArea: {
+        minHeight: 122,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        color: '#1F2937',
+        fontSize: 16,
+        lineHeight: 26,
+    },
+    summaryRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: 14,
+    },
+    summaryLabel: {
+        color: '#5B6575',
+        fontSize: 15,
+        lineHeight: 22,
+    },
+    summaryValue: {
+        color: '#1F2937',
+        fontSize: 15,
+        lineHeight: 22,
+        fontWeight: '700',
+    },
+    summaryValueTeal: {
+        color: '#0F766E',
+    },
+    summaryDivider: {
+        height: 1,
+        backgroundColor: '#E5E7EB',
+    },
+    footerButton: {
+        height: 54,
+        borderRadius: 14,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 12,
+    },
+    footerButtonMuted: {
+        backgroundColor: '#FFFFFF',
+        borderWidth: 1,
+        borderColor: '#D7DEE8',
+    },
+    footerButtonPrimary: {
+        backgroundColor: '#0A6B63',
+    },
+    footerButtonPrimaryDisabled: {
+        backgroundColor: '#7AA8A3',
+    },
+    footerButtonPrimaryText: {
+        color: '#FFFFFF',
+        fontSize: 15,
+        lineHeight: 20,
+        fontWeight: '800',
+    },
+});
+
+export { styles };
+export default styles;

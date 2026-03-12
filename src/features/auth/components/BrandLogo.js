@@ -1,4 +1,6 @@
-import { Image, StyleSheet, View } from 'react-native';
+import { Image, View } from 'react-native';
+
+import { BrandLogoStyles as styles } from '../../../styles';
 
 const logoSources = {
     dark: require('../../../../assets/nutra/logo-dark.png'),
@@ -12,14 +14,3 @@ export function BrandLogo({ variant = 'dark', containerStyle, imageStyle }) {
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    logoBlock: {
-        alignItems: 'center',
-        marginBottom: 30,
-    },
-    logoImage: {
-        width: 168,
-        height: 64,
-    },
-});

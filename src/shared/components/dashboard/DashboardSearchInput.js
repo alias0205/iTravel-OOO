@@ -1,5 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { TextInput, View } from 'react-native';
+
+import { DashboardSearchInputStyles as styles } from '../../../styles';
 
 export function DashboardSearchInput({ placeholder }) {
     return (
@@ -9,23 +11,3 @@ export function DashboardSearchInput({ placeholder }) {
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        height: 46,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#D8DDE4',
-        backgroundColor: '#FFFFFF',
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 12,
-        marginBottom: 12,
-    },
-    input: {
-        flex: 1,
-        marginLeft: 10,
-        fontSize: 14,
-        color: '#212A37',
-    },
-});

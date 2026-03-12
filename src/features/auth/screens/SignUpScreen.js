@@ -1,12 +1,12 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, Text } from 'react-native';
 
 import { AuthAgreement } from '../components/AuthAgreement';
 import { AuthPrimaryButton } from '../components/AuthPrimaryButton';
 import { AuthScreenShell } from '../components/AuthScreenShell';
 import { LabeledInput } from '../components/LabeledInput';
-import { colors } from '../../../shared/theme/colors';
+import { SignUpScreenStyles as styles, colors } from '../../../styles';
 import { hasValidationErrors, validateSignUp } from '../utils/authValidation';
 
 export function SignUpScreen({ navigation }) {
@@ -134,13 +134,3 @@ export function SignUpScreen({ navigation }) {
         </AuthScreenShell>
     );
 }
-
-const styles = StyleSheet.create({
-    agreementError: {
-        marginTop: -20,
-        marginBottom: 20,
-        fontSize: 13,
-        lineHeight: 18,
-        color: colors.danger,
-    },
-});

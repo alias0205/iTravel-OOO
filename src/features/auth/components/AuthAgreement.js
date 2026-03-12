@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
-import { colors } from '../../../shared/theme/colors';
+import { AuthAgreementStyles as styles, colors } from '../../../styles';
 
 export function AuthAgreement({ checked, onPress, prefixText, links }) {
     return (
@@ -19,34 +19,3 @@ export function AuthAgreement({ checked, onPress, prefixText, links }) {
         </Pressable>
     );
 }
-
-const styles = StyleSheet.create({
-    row: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        marginBottom: 32,
-    },
-    checkbox: {
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        backgroundColor: colors.checkbox,
-        marginTop: 2,
-        marginRight: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    checkboxActive: {
-        backgroundColor: colors.primaryDark,
-    },
-    text: {
-        flex: 1,
-        color: colors.mutedStrong,
-        fontSize: 16,
-        lineHeight: 24,
-    },
-    link: {
-        color: colors.primaryDark,
-        fontWeight: '600',
-    },
-});

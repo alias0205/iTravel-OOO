@@ -1,6 +1,8 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useEffect, useRef } from 'react';
-import { Animated, Easing, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, SafeAreaView, Text, View } from 'react-native';
+
+import { SplashScreenStyles as styles } from '../../../styles';
 
 const splashColors = {
     background: '#005F5B',
@@ -166,7 +168,7 @@ export function SplashScreen({ navigation }) {
                     </Text>
 
                     <Text style={styles.title}>Out of Office made simple</Text>
-                    <Text style={styles.subtitle}>Streamline leave requests & team management</Text>
+                    <Text style={styles.subtitle}>Streamline leave requests & consuldant management</Text>
 
                     <Animated.View
                         style={[
@@ -187,127 +189,3 @@ export function SplashScreen({ navigation }) {
         </SafeAreaView>
     );
 }
-
-const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: splashColors.background,
-    },
-    container: {
-        flex: 1,
-        backgroundColor: splashColors.background,
-        overflow: 'hidden',
-        paddingHorizontal: 28,
-        paddingTop: 24,
-        paddingBottom: 22,
-    },
-    content: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingBottom: 36,
-    },
-    iconTile: {
-        width: 76,
-        height: 76,
-        borderRadius: 18,
-        backgroundColor: splashColors.iconSurface,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 24,
-    },
-    brandText: {
-        fontSize: 20,
-        lineHeight: 28,
-        marginBottom: 24,
-        letterSpacing: 0.2,
-    },
-    brandStrong: {
-        color: splashColors.textPrimary,
-        fontWeight: '800',
-    },
-    brandLight: {
-        color: splashColors.textSecondary,
-        fontWeight: '400',
-    },
-    title: {
-        color: splashColors.textSecondary,
-        fontSize: 15,
-        lineHeight: 21,
-        fontWeight: '700',
-        marginBottom: 8,
-        textAlign: 'center',
-    },
-    subtitle: {
-        color: splashColors.textMuted,
-        fontSize: 12,
-        lineHeight: 18,
-        textAlign: 'center',
-        maxWidth: 240,
-    },
-    loadingBlock: {
-        marginTop: 88,
-        alignItems: 'center',
-    },
-    loadingText: {
-        color: splashColors.textSecondary,
-        fontSize: 14,
-        lineHeight: 20,
-        fontWeight: '700',
-        marginBottom: 10,
-    },
-    dotRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 8,
-    },
-    dot: {
-        width: 7,
-        height: 7,
-        borderRadius: 999,
-        backgroundColor: splashColors.dotActive,
-    },
-    footer: {
-        color: splashColors.textSoft,
-        fontSize: 11,
-        lineHeight: 16,
-        textAlign: 'center',
-    },
-    bubble: {
-        position: 'absolute',
-        borderWidth: 1,
-        borderColor: splashColors.bubble,
-        borderRadius: 999,
-    },
-    bubbleTopLeft: {
-        width: 58,
-        height: 58,
-        top: 30,
-        left: 30,
-    },
-    bubbleTopRight: {
-        width: 34,
-        height: 34,
-        top: 98,
-        right: 48,
-    },
-    bubbleMiddleRight: {
-        width: 20,
-        height: 20,
-        top: 248,
-        right: 78,
-    },
-    bubbleBottomLeft: {
-        width: 48,
-        height: 48,
-        bottom: 118,
-        left: 56,
-    },
-    bubbleBottomRight: {
-        width: 72,
-        height: 72,
-        bottom: 70,
-        right: 36,
-    },
-});

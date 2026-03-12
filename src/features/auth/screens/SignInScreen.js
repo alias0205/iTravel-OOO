@@ -1,12 +1,12 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, Text } from 'react-native';
 
 import { AuthAgreement } from '../components/AuthAgreement';
 import { AuthPrimaryButton } from '../components/AuthPrimaryButton';
 import { AuthScreenShell } from '../components/AuthScreenShell';
 import { LabeledInput } from '../components/LabeledInput';
-import { colors } from '../../../shared/theme/colors';
+import { SignInScreenStyles as styles, colors } from '../../../styles';
 import { hasValidationErrors, validateSignIn } from '../utils/authValidation';
 
 export function SignInScreen({ navigation }) {
@@ -43,8 +43,8 @@ export function SignInScreen({ navigation }) {
 
         try {
             await new Promise((resolve) => setTimeout(resolve, 1000));
-            navigation.replace('ConsultantDashboard');
-            // navigation.replace('ApprovalDashboard');
+            // navigation.replace('ConsultantDashboard');
+            navigation.replace('ApprovalDashboard');
         } finally {
             setIsSubmitting(false);
         }
@@ -109,23 +109,3 @@ export function SignInScreen({ navigation }) {
         </AuthScreenShell>
     );
 }
-
-const styles = StyleSheet.create({
-    forgotPasswordButton: {
-        alignSelf: 'flex-end',
-        marginTop: 2,
-        marginBottom: 28,
-    },
-    forgotPasswordText: {
-        fontSize: 15,
-        color: '#646464',
-        fontWeight: '500',
-    },
-    agreementError: {
-        marginTop: -20,
-        marginBottom: 20,
-        fontSize: 13,
-        lineHeight: 18,
-        color: colors.danger,
-    },
-});

@@ -1,6 +1,6 @@
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable } from 'react-native';
 
-import { colors } from '../../../shared/theme/colors';
+import { SocialIconButtonStyles as styles, colors } from '../../../styles';
 
 export function SocialIconButton({ children, onPress }) {
     return (
@@ -9,16 +9,3 @@ export function SocialIconButton({ children, onPress }) {
         </Pressable>
     );
 }
-
-const styles = StyleSheet.create({
-    button: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        borderWidth: 1,
-        borderColor: colors.borderSoft,
-        backgroundColor: colors.surface,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-});

@@ -1,6 +1,11 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
+import { ApprovalCalendarScreen } from '../../features/approval/screens/ApprovalCalendarScreen';
 import { ApprovalDashboardScreen } from '../../features/approval/screens/ApprovalDashboardScreen';
+import { ApprovalNotificationsScreen } from '../../features/approval/screens/ApprovalNotificationsScreen';
+import { ApprovalRequestListScreen } from '../../features/approval/screens/ApprovalRequestListScreen';
+import { ApprovalRequestReviewScreen } from '../../features/approval/screens/ApprovalRequestReviewScreen';
+import { ApprovalSettingsScreen } from '../../features/approval/screens/ApprovalSettingsScreen';
 import { ForgotPasswordScreen } from '../../features/auth/screens/ForgotPasswordScreen';
 import { SignInScreen } from '../../features/auth/screens/SignInScreen';
 import { SignUpScreen } from '../../features/auth/screens/SignUpScreen';
@@ -18,7 +23,12 @@ export function AppNavigator() {
     return (
         <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
             <Stack.Screen component={SplashScreen} name="Splash" />
+            <Stack.Screen component={ApprovalCalendarScreen} name="ApprovalCalendar" />
             <Stack.Screen component={ApprovalDashboardScreen} name="ApprovalDashboard" />
+            <Stack.Screen component={ApprovalNotificationsScreen} name="ApprovalNotifications" />
+            <Stack.Screen component={ApprovalRequestListScreen} name="ApprovalRequestList" />
+            <Stack.Screen component={ApprovalRequestReviewScreen} name="ApprovalRequestReview" />
+            <Stack.Screen component={ApprovalSettingsScreen} name="ApprovalSettings" />
             <Stack.Screen component={ConsultantDashboardScreen} name="ConsultantDashboard" />
             <Stack.Screen component={ConsultantNewRequestScreen} name="ConsultantNewRequest" />
             <Stack.Screen component={ConsultantNotificationsScreen} name="ConsultantNotifications" />
