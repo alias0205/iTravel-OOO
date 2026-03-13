@@ -1,5 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { SafeAreaView, ScrollView, Text, View, Pressable } from 'react-native';
+import { ScrollView, Text, View, Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DashboardBottomNav } from '../../../shared/components/dashboard/DashboardBottomNav';
 import { DashboardTopBar } from '../../../shared/components/dashboard/DashboardTopBar';

@@ -1,6 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useEffect, useRef } from 'react';
-import { Animated, Easing, SafeAreaView, Text, View } from 'react-native';
+import { Animated, Easing, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SplashScreenStyles as styles } from '../../../styles';
 
@@ -17,8 +18,9 @@ const splashColors = {
     dotActive: '#FFFFFF',
 };
 
-const SPLASH_ROUTE_DELAY = 2800;
+const SPLASH_ROUTE_DELAY = 1800;
 const ENTRANCE_DURATION = 650;
+const shouldUseNativeDriver = false;
 
 function LoadingDots() {
     const dotAnimations = useRef([new Animated.Value(0.35), new Animated.Value(0.35), new Animated.Value(0.35)]).current;
@@ -32,13 +34,13 @@ function LoadingDots() {
                         toValue: 1,
                         duration: 320,
                         easing: Easing.inOut(Easing.ease),
-                        useNativeDriver: true,
+                        useNativeDriver: shouldUseNativeDriver,
                     }),
                     Animated.timing(animatedValue, {
                         toValue: 0.35,
                         duration: 320,
                         easing: Easing.inOut(Easing.ease),
-                        useNativeDriver: true,
+                        useNativeDriver: shouldUseNativeDriver,
                     }),
                     Animated.delay(240),
                 ])
@@ -83,6 +85,19 @@ export function SplashScreen({ navigation }) {
     const iconScale = useRef(new Animated.Value(0.92)).current;
     const loadingOpacity = useRef(new Animated.Value(0)).current;
     const loadingTranslateY = useRef(new Animated.Value(12)).current;
+    const hasNavigatedRef = useRef(false);
+
+    const handleContinue = () => {
+        if (hasNavigatedRef.current) {
+            return;
+        }
+
+        hasNavigatedRef.current = true;
+        navigation.reset({
+            index: 0,
+            routes: [{ name: 'SignIn' }],
+        });
+    };
 
     useEffect(() => {
         const entranceAnimation = Animated.sequence([
@@ -91,19 +106,19 @@ export function SplashScreen({ navigation }) {
                     toValue: 1,
                     duration: ENTRANCE_DURATION,
                     easing: Easing.out(Easing.cubic),
-                    useNativeDriver: true,
+                    useNativeDriver: shouldUseNativeDriver,
                 }),
                 Animated.timing(heroTranslateY, {
                     toValue: 0,
                     duration: ENTRANCE_DURATION,
                     easing: Easing.out(Easing.cubic),
-                    useNativeDriver: true,
+                    useNativeDriver: shouldUseNativeDriver,
                 }),
                 Animated.timing(iconScale, {
                     toValue: 1,
                     duration: ENTRANCE_DURATION,
                     easing: Easing.out(Easing.back(1.1)),
-                    useNativeDriver: true,
+                    useNativeDriver: shouldUseNativeDriver,
                 }),
             ]),
             Animated.parallel([
@@ -111,28 +126,33 @@ export function SplashScreen({ navigation }) {
                     toValue: 1,
                     duration: 380,
                     easing: Easing.out(Easing.ease),
-                    useNativeDriver: true,
+                    useNativeDriver: shouldUseNativeDriver,
                 }),
                 Animated.timing(loadingTranslateY, {
                     toValue: 0,
                     duration: 380,
                     easing: Easing.out(Easing.ease),
-                    useNativeDriver: true,
+                    useNativeDriver: shouldUseNativeDriver,
                 }),
             ]),
         ]);
 
         entranceAnimation.start();
 
+        return () => {
+            entranceAnimation.stop();
+        };
+    }, [heroOpacity, heroTranslateY, iconScale, loadingOpacity, loadingTranslateY]);
+
+    useEffect(() => {
         const timeoutId = setTimeout(() => {
-            navigation.replace('SignIn');
+            handleContinue();
         }, SPLASH_ROUTE_DELAY);
 
         return () => {
             clearTimeout(timeoutId);
-            entranceAnimation.stop();
         };
-    }, [heroOpacity, heroTranslateY, iconScale, loadingOpacity, loadingTranslateY, navigation]);
+    }, [navigation]);
 
     return (
         <SafeAreaView style={styles.safeArea}>

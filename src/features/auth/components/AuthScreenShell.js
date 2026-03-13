@@ -1,6 +1,7 @@
 import { FontAwesome } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
-import { Image, SafeAreaView, ScrollView, Text, View } from 'react-native';
+import { Image, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandLogo } from './BrandLogo';
 import { SocialIconButton } from './SocialIconButton';

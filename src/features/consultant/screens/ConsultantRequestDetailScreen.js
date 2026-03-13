@@ -110,10 +110,10 @@ export function ConsultantRequestDetailScreen({ navigation, route }) {
                     <MaterialCommunityIcons color="#FFFFFF" name="email" size={18} />
                     <Text style={[styles.footerActionText, styles.footerActionTextPrimary]}>Contact Manager</Text>
                 </Pressable>
-                <Pressable style={[styles.footerActionButton, styles.footerActionMuted]}>
+                {/* <Pressable style={[styles.footerActionButton, styles.footerActionMuted]}>
                     <MaterialCommunityIcons color="#4D5867" name="calendar-month" size={18} />
                     <Text style={[styles.footerActionText, styles.footerActionTextMuted]}>Add to Calendar</Text>
-                </Pressable>
+                </Pressable> */}
             </View>
         </ConsultantScreenLayout>
     );

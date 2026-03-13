@@ -153,9 +153,7 @@ export function DashboardTopBar({
                                     <View style={styles.sidebarBrandRow}>
                                         <View style={styles.sidebarLogoTile}>
                                             {/* <MaterialCommunityIcons color="#0A6B63" name="airplane" size={18} /> */}
-                                            <Text style={isLight ? { color: '#FFFFFF', fontSize: 24, marginTop: -4 } : { color: '#0A6B63', fontSize: 24, marginTop: -4 }}>
-                                                {'ns'}
-                                            </Text>
+                                            <Text style={{ color: '#FFFFFF', fontSize: 24, marginTop: -4 }}>{'ns'}</Text>
                                         </View>
                                         <View>
                                             <Text style={styles.sidebarTitle}>{sidebarTitle}</Text>
@@ -163,9 +161,9 @@ export function DashboardTopBar({
                                         </View>
                                     </View>
 
-                                    <Pressable onPress={() => setIsSidebarVisible(false)} style={styles.sidebarCloseButton}>
+                                    {/* <Pressable onPress={() => setIsSidebarVisible(false)} style={styles.sidebarCloseButton}>
                                         <MaterialCommunityIcons color="#475569" name="close" size={20} />
-                                    </Pressable>
+                                    </Pressable> */}
                                 </View>
 
                                 {avatarSource || avatarLabel ? (
