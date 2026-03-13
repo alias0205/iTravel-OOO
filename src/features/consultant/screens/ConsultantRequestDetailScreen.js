@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, Text, View } from 'react-native';
 
 import { ConsultantScreenLayout } from '../components/ConsultantScreenLayout';
+import { consultantDefaultRequest } from '../data/consultantRequests';
 import { ConsultantRequestDetailScreenStyles as styles } from '../../../styles';
 import { DetailSectionCard } from '../../../shared/components/dashboard/DetailSectionCard';
 import { InfoField } from '../../../shared/components/dashboard/InfoField';
@@ -9,10 +10,9 @@ import { PersonSummaryRow } from '../../../shared/components/dashboard/PersonSum
 import { StatusBadge } from '../../../shared/components/dashboard/StatusBadge';
 import { TimelineItem } from '../../../shared/components/dashboard/TimelineItem';
 
-const consultantAvatar = require('../../../../assets/nutra/avatars/avatar-1.jpg');
-const managerAvatar = require('../../../../assets/nutra/avatars/avatar-4.jpg');
+export function ConsultantRequestDetailScreen({ navigation, route }) {
+    const request = route?.params?.request ?? consultantDefaultRequest;
 
-export function ConsultantRequestDetailScreen({ navigation }) {
     return (
         <ConsultantScreenLayout
             activeNavKey="requests"
@@ -25,11 +25,11 @@ export function ConsultantRequestDetailScreen({ navigation }) {
         >
             <View style={styles.pagePadding}>
                 <View style={styles.heroCard}>
-                    <PersonSummaryRow avatarSource={consultantAvatar} name="Your Vacation Leave" subtitle="December 18-20, 2024" />
+                    <PersonSummaryRow avatarSource={request.employeeAvatarSource} name={`Your ${request.title}`} subtitle={request.dateRange} />
 
                     <View style={styles.heroMetaRow}>
-                        <StatusBadge label="Approved" tone="approved" />
-                        <Text style={styles.heroDays}>3 days</Text>
+                        <StatusBadge label={request.statusLabel} tone={request.statusTone} />
+                        <Text style={styles.heroDays}>{request.duration}</Text>
                     </View>
 
                     <View style={styles.heroActionRow}>
@@ -47,56 +47,63 @@ export function ConsultantRequestDetailScreen({ navigation }) {
                 <DetailSectionCard title="Request Details">
                     <Text style={styles.fieldLabel}>Employee</Text>
                     <View style={styles.personRowWrap}>
-                        <PersonSummaryRow avatarSource={consultantAvatar} name="Sarah Johnson" subtitle="Engineering Team" />
+                        <PersonSummaryRow avatarSource={request.employeeAvatarSource} name={request.employeeName} subtitle={request.employeeTeam} />
                     </View>
 
                     <View style={styles.twoColumnRow}>
                         <View style={styles.column}>
-                            <InfoField label="Start Date" value="December 18, 2024" />
+                            <InfoField label="Start Date" value={request.startDate} />
                         </View>
                         <View style={styles.columnSpacer} />
                         <View style={styles.column}>
-                            <InfoField label="End Date" value="December 20, 2024" />
+                            <InfoField label="End Date" value={request.endDate} />
                         </View>
                     </View>
 
                     <View style={styles.leaveTypeWrap}>
                         <Text style={styles.fieldLabel}>Leave Type</Text>
                         <View style={styles.leaveTypeRow}>
-                            <MaterialCommunityIcons color="#2563EB" name="beach" size={18} />
-                            <Text style={styles.leaveTypeText}>Vacation</Text>
+                            <MaterialCommunityIcons color={request.leaveTypeColor} name={request.leaveTypeIcon} size={18} />
+                            <Text style={styles.leaveTypeText}>{request.leaveTypeLabel}</Text>
                         </View>
                     </View>
-                    <InfoField label="Reason" value="Family vacation to celebrate the holidays. Will be traveling out of state and completely offline." />
+                    <InfoField label="Reason" value={request.reason} />
 
                     <View style={styles.statusGroup}>
                         <Text style={styles.fieldLabel}>Status</Text>
-                        <StatusBadge label="Approved" tone="approved" />
+                        <StatusBadge label={request.statusLabel} tone={request.statusTone} />
                     </View>
                 </DetailSectionCard>
 
                 <DetailSectionCard title="Manager Information">
-                    <PersonSummaryRow avatarSource={managerAvatar} extra="michael.chen@company.com" name="Michael Chen" showAction subtitle="Engineering Manager" />
+                    <PersonSummaryRow
+                        avatarSource={request.managerAvatarSource}
+                        extra={request.managerEmail}
+                        name={request.managerName}
+                        showAction
+                        subtitle={request.managerRole}
+                    />
 
                     <View style={styles.managerApprovalBox}>
                         <View style={styles.managerApprovalHeader}>
-                            <MaterialCommunityIcons color="#16A34A" name="check-circle" size={18} />
-                            <Text style={styles.managerApprovalTitle}>Approved on December 15, 2024</Text>
+                            <MaterialCommunityIcons color={request.managerApprovalIconColor} name={request.managerApprovalIcon} size={18} />
+                            <Text style={styles.managerApprovalTitle}>{request.managerApprovalTitle}</Text>
                         </View>
-                        <Text style={styles.managerApprovalNote}>"Approved. Enjoy your vacation!"</Text>
+                        <Text style={styles.managerApprovalNote}>"{request.managerApprovalNote}"</Text>
                     </View>
                 </DetailSectionCard>
 
                 <DetailSectionCard title="Request Timeline">
-                    <TimelineItem detail="Leave request submitted for manager approval" timestamp="December 10, 2024 at 2:30 PM" title="Request Submitted" tone="submitted" />
-                    <TimelineItem detail="Manager reviewing request and checking team availability" timestamp="December 12, 2024 at 9:15 AM" title="Under Review" tone="review" />
-                    <TimelineItem
-                        detail="Request approved by Michael Chen with coverage arrangements"
-                        isLast
-                        timestamp="December 15, 2024 at 11:45 AM"
-                        title="Approved"
-                        tone="approved"
-                    />
+                    {request.timeline.map((item, index) => (
+                        <TimelineItem
+                            detail={item.detail}
+                            isLast={index === request.timeline.length - 1}
+                            key={`${request.id}-${item.title}-${index}`}
+                            timestamp={item.timestamp}
+                            title={item.title}
+                            tone={item.tone}
+                        />
+                    ))}
                 </DetailSectionCard>
 
                 <Pressable style={[styles.footerActionButton, styles.footerActionPrimary]}>

@@ -82,7 +82,7 @@ const holidayRecords = [
     { id: 'new-year', date: '2025-01-01', title: "New Year's Day", summary: 'Jan 1, 2025' },
 ];
 
-export const availableYears = [2024, 2025, 2026];
+export const availableYears = [2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033];
 export const initialMonth = new Date(2024, 11, 1);
 export const initialSelectedDate = '2024-12-18';
 

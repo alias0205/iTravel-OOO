@@ -85,11 +85,11 @@ export function ApprovalScreenLayout({
                 sidebarProfileName="Michael Johnson"
                 sidebarItems={navItems}
                 sidebarSubtitle="Nutrastat"
-                sidebarTitle="iTravel"
+                sidebarTitle="iTravel OOO"
                 showBrandIcon
                 showNotification={showNotification}
                 subtitle="Nutrastat"
-                title="iTravel"
+                title="iTravel OOO"
                 variant="dark"
                 {...topBarProps}
             />

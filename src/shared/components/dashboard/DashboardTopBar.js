@@ -107,7 +107,8 @@ export function DashboardTopBar({
                 <View pointerEvents="none" style={styles.brandWrap}>
                     {shouldShowBrandIcon ? (
                         <View style={[styles.logoTile, isLight ? styles.logoTileLight : null]}>
-                            <MaterialCommunityIcons color={isLight ? '#FFFFFF' : '#0A6B63'} name="airplane" size={20} />
+                            {/* <MaterialCommunityIcons color={isLight ? '#FFFFFF' : '#0A6B63'} name="airplane" size={20} /> */}
+                            <Text style={isLight ? { color: '#FFFFFF', fontSize: 24, marginTop: -4 } : { color: '#0A6B63', fontSize: 24, marginTop: -4 }}>{'ns'}</Text>
                         </View>
                     ) : null}
 
@@ -151,7 +152,10 @@ export function DashboardTopBar({
                                 <View style={styles.sidebarHeaderTopRow}>
                                     <View style={styles.sidebarBrandRow}>
                                         <View style={styles.sidebarLogoTile}>
-                                            <MaterialCommunityIcons color="#0A6B63" name="airplane" size={18} />
+                                            {/* <MaterialCommunityIcons color="#0A6B63" name="airplane" size={18} /> */}
+                                            <Text style={isLight ? { color: '#FFFFFF', fontSize: 24, marginTop: -4 } : { color: '#0A6B63', fontSize: 24, marginTop: -4 }}>
+                                                {'ns'}
+                                            </Text>
                                         </View>
                                         <View>
                                             <Text style={styles.sidebarTitle}>{sidebarTitle}</Text>

@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, Text, View } from 'react-native';
 
 import { ConsultantScreenLayout } from '../components/ConsultantScreenLayout';
+import { consultantRecentRequests } from '../data/consultantRequests';
 import { ConsultantDashboardScreenStyles as styles } from '../../../styles';
 import { DashboardSectionHeader } from '../../../shared/components/dashboard/DashboardSectionHeader';
 import { MetricStatCard } from '../../../shared/components/dashboard/MetricStatCard';
@@ -59,42 +60,21 @@ export function ConsultantDashboardScreen({ navigation }) {
 
                 <DashboardSectionHeader actionLabel="View All" onActionPress={() => navigation.navigate('ConsultantRequestList')} title="Recent Requests" />
 
-                <RequestCard
-                    dateRange="Dec 23 - Dec 27, 2024"
-                    detail="Christmas holidays"
-                    duration="5 days"
-                    icon="beach"
-                    iconColor="blue"
-                    meta="Submitted 2 days ago"
-                    onPress={() => navigation.navigate('ConsultantRequestDetail')}
-                    statusLabel="Pending"
-                    statusTone="pending"
-                    title="Annual Leave"
-                />
-                <RequestCard
-                    dateRange="Nov 18 - Nov 19, 2024"
-                    detail="Medical recovery"
-                    duration="2 days"
-                    icon="account-injury"
-                    iconColor="purple"
-                    meta="Approved by T. Robb"
-                    onPress={() => navigation.navigate('ConsultantRequestDetail')}
-                    statusLabel="Approved"
-                    statusTone="approved"
-                    title="Sick Leave"
-                />
-                <RequestCard
-                    dateRange="Nov 10 - Nov 12, 2024"
-                    detail="Personal time"
-                    duration="3 days"
-                    icon="close"
-                    iconColor="red"
-                    meta="Declined · Insufficient coverage"
-                    onPress={() => navigation.navigate('ConsultantRequestDetail')}
-                    statusLabel="Rejected"
-                    statusTone="rejected"
-                    title="Annual Leave"
-                />
+                {consultantRecentRequests.map((request) => (
+                    <RequestCard
+                        dateRange={request.dateRange}
+                        detail={request.detail}
+                        duration={request.duration}
+                        icon={request.icon}
+                        iconColor={request.iconColor}
+                        key={request.id}
+                        meta={request.meta}
+                        onPress={() => navigation.navigate('ConsultantRequestDetail', { request })}
+                        statusLabel={request.statusLabel}
+                        statusTone={request.statusTone}
+                        title={request.title}
+                    />
+                ))}
 
                 <DashboardSectionHeader title="Quick Stats" />
 
@@ -104,7 +84,7 @@ export function ConsultantDashboardScreen({ navigation }) {
                     <QuickStatCard icon="clock-time-three-outline" subtitle="request" title="Pending" tone="purple" value="1" />
                 </View>
 
-                <DashboardSectionHeader title="Upcoming Time Off" />
+                {/* <DashboardSectionHeader title="Upcoming Time Off" />
 
                 <View style={styles.upcomingCard}>
                     <View style={styles.upcomingTopRow}>
@@ -122,7 +102,7 @@ export function ConsultantDashboardScreen({ navigation }) {
                         <MaterialCommunityIcons color="#D8F2ED" name="beach" size={16} />
                         <Text style={styles.upcomingMetaText}>Annual Leave · 5 days</Text>
                     </View>
-                </View>
+                </View> */}
             </View>
         </ConsultantScreenLayout>
     );

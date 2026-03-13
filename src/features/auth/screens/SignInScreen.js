@@ -43,8 +43,8 @@ export function SignInScreen({ navigation }) {
 
         try {
             await new Promise((resolve) => setTimeout(resolve, 1000));
-            // navigation.replace('ConsultantDashboard');
-            navigation.replace('ApprovalDashboard');
+            navigation.replace('ConsultantDashboard');
+            // navigation.replace('ApprovalDashboard');
         } finally {
             setIsSubmitting(false);
         }

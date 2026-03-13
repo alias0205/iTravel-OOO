@@ -16,7 +16,7 @@ export function DashboardBottomNav({ items = defaultItems, activeKey = 'home', o
             {items.map((item) => (
                 <Pressable key={item.key} onPress={() => onItemPress?.(item)} style={styles.item}>
                     <View style={[styles.iconWrap, item.key === activeKey ? styles.iconWrapActive : null]}>
-                        <MaterialCommunityIcons color={item.key === activeKey ? '#FFFFFF' : '#767E8D'} name={item.icon} size={22} />
+                        <MaterialCommunityIcons color={item.key === activeKey ? '#FFFFFF' : '#767E8D'} name={item.icon} size={28} />
                         {item.badge ? (
                             <View style={styles.badge}>
                                 <Text style={styles.badgeText}>{item.badge}</Text>
