@@ -5,6 +5,7 @@ import { Alert, Image, Pressable, Text, TextInput, View } from 'react-native';
 import { ApprovalConfirmDialog } from '../components/ApprovalConfirmDialog';
 import { ApprovalScreenLayout } from '../components/ApprovalScreenLayout';
 import { approvalAvatarSources } from '../data/approvalAvatarSources';
+import { getApprovalDurationBreakdown } from '../utils/approvalDurationUtils';
 import { ApprovalRequestReviewScreenStyles as styles } from '../../../styles';
 
 const employeeAvatar = require('../../../../assets/nutra/avatars/avatar-5.jpg');
@@ -93,6 +94,7 @@ export function ApprovalRequestReviewScreen({ navigation, route }) {
     const leaveTone = leaveTypeColors[request.leaveToneKey] ?? leaveTypeColors.annual;
     const leaveIcon = leaveTypeIcons[request.leaveToneKey] ?? leaveTypeIcons.annual;
     const employeePhoto = request.avatarSource ?? approvalAvatarSources[request.avatarLabel] ?? employeeAvatar;
+    const durationBreakdown = useMemo(() => getApprovalDurationBreakdown(request), [request]);
 
     const handleApprovalDecision = () => {
         const decision = pendingDecision;
@@ -149,7 +151,7 @@ export function ApprovalRequestReviewScreen({ navigation, route }) {
                             }
                         />
                         <SummaryRow label="Dates" value={request.dateRange} />
-                        <SummaryRow label="Duration" value={request.durationLabel} />
+                        <SummaryRow label="Duration" value={durationBreakdown?.label ?? request.durationLabel ?? request.duration} />
                         <SummaryRow label="Submitted" value={request.submittedAt} />
 
                         <View style={styles.sectionDivider} />
