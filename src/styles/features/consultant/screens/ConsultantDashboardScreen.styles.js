@@ -77,6 +77,16 @@ const styles = StyleSheet.create({
     metricSpacer: {
         width: 12,
     },
+    statusQuickStatsWrap: {
+        marginTop: 18,
+    },
+    statusQuickStatsTitle: {
+        color: '#394252',
+        fontSize: 15,
+        lineHeight: 20,
+        fontWeight: '800',
+        marginBottom: 12,
+    },
     primaryActionCard: {
         backgroundColor: '#0A6B63',
         borderRadius: 16,

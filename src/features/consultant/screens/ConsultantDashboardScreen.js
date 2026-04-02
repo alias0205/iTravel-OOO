@@ -39,10 +39,20 @@ export function ConsultantDashboardScreen({ navigation }) {
                     </View>
 
                     <View style={styles.metricRow}>
-                        <MetricStatCard subtitle="days remaining" title="Annual Leave" value="18" />
+                        <MetricStatCard subtitle="days remaining" title="Annual Leave" value="3" />
                         <View style={styles.metricSpacer} />
-                        <MetricStatCard subtitle="days taken" title="Used This Year" tone="neutral" value="7" />
+                        <MetricStatCard subtitle="Requests" title="Pending" tone="neutral" value="2" />
                     </View>
+
+                    {/* <View style={styles.statusQuickStatsWrap}>
+                        <Text style={styles.statusQuickStatsTitle}>Quick Stats</Text>
+
+                        <View style={styles.quickStatsRow}>
+                            <QuickStatCard icon="calendar-month" subtitle="days off" title="This Month" value="3" />
+                            <View style={styles.quickStatsSpacer} />
+                            <QuickStatCard icon="clock-time-three-outline" subtitle="request" title="Pending" tone="purple" value="1" />
+                        </View>
+                    </View> */}
                 </View>
 
                 <Pressable onPress={() => navigation.navigate('ConsultantNewRequest')} style={styles.primaryActionCard}>
@@ -75,14 +85,6 @@ export function ConsultantDashboardScreen({ navigation }) {
                         title={request.title}
                     />
                 ))}
-
-                <DashboardSectionHeader title="Quick Stats" />
-
-                <View style={styles.quickStatsRow}>
-                    <QuickStatCard icon="calendar-month" subtitle="days off" title="This Month" value="3" />
-                    <View style={styles.quickStatsSpacer} />
-                    <QuickStatCard icon="clock-time-three-outline" subtitle="request" title="Pending" tone="purple" value="1" />
-                </View>
 
                 {/* <DashboardSectionHeader title="Upcoming Time Off" />
 

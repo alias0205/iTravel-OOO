@@ -204,7 +204,7 @@ export function SplashScreen({ navigation }) {
                     </Animated.View>
                 </Animated.View>
 
-                <Text style={styles.footer}>© 2024 iTravel OOO. All rights reserved.</Text>
+                <Text style={styles.footer}>© 2026 iTravel OOO. All rights reserved.</Text>
             </View>
         </SafeAreaView>
     );

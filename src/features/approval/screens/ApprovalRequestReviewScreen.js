@@ -159,7 +159,7 @@ export function ApprovalRequestReviewScreen({ navigation, route }) {
                     </View>
                 </SectionCard>
 
-                <SectionCard icon="chart-donut" title="Leave Balance">
+                {/* <SectionCard icon="chart-donut" title="Leave Balance">
                     <View style={styles.sectionBody}>
                         <View style={styles.balanceGrid}>
                             <BalanceMetric label="Days Available" value={request.daysAvailable} />
@@ -176,7 +176,7 @@ export function ApprovalRequestReviewScreen({ navigation, route }) {
                             <View style={[styles.progressFill, { width: request.annualLeaveUsagePercent + '%' }]} />
                         </View>
                     </View>
-                </SectionCard>
+                </SectionCard> */}
 
                 <View style={styles.commentCard}>
                     <Text style={styles.commentTitle}>Add Comment (Optional)</Text>

@@ -90,7 +90,7 @@ export function ConsultantScreenLayout({
                     })
                 }
                 sidebarProfileMeta="Nutrastat"
-                sidebarProfileName="Consultant Portal"
+                sidebarProfileName="Sarah Connor"
                 sidebarItems={navItems}
                 sidebarSubtitle="iTravel OOO"
                 sidebarTitle="Consultant Navigation"

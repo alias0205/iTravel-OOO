@@ -185,14 +185,14 @@ export function ConsultantNewRequestScreen({ navigation }) {
             showBackButton
         >
             <View style={styles.pagePadding}>
-                <DetailSectionCard title="Your Leave Balance">
+                {/* <DetailSectionCard title="Your Leave Balance">
                     <View style={styles.balanceGrid}>
                         <BalanceItem label="Available Days" value="18.5" />
                         <BalanceItem label="Used This Year" tone="orange" value="6.5" />
                         <BalanceItem label="Pending Requests" tone="gold" value="2" />
                         <BalanceItem label="Annual Allowance" tone="slate" value="25" />
                     </View>
-                </DetailSectionCard>
+                </DetailSectionCard> */}
 
                 <DetailSectionCard title="New Leave Request">
                     <View style={styles.leaveTypeFieldWrap}>
@@ -268,8 +268,8 @@ export function ConsultantNewRequestScreen({ navigation }) {
                     <SummaryRow label="Duration:" value={summary.duration} />
                     <View style={styles.summaryDivider} />
                     <SummaryRow label="Days Requested:" value={summary.requestedDays} />
-                    <View style={styles.summaryDivider} />
-                    <SummaryRow label="Remaining Balance:" value={summary.remainingBalance} valueTone="teal" />
+                    {/* <View style={styles.summaryDivider} />
+                    <SummaryRow label="Remaining Balance:" value={summary.remainingBalance} valueTone="teal" /> */}
                 </DetailSectionCard>
 
                 <Pressable onPress={handleSubmit} style={[styles.footerButton, styles.footerButtonPrimary, !isFormValid ? styles.footerButtonPrimaryDisabled : null]}>
