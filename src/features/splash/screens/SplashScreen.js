@@ -3,6 +3,8 @@ import { useEffect, useRef } from 'react';
 import { Animated, Easing, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useAuthSession } from '../../auth/context/AuthSessionContext';
+import { getLoginRoute } from '../../auth/utils/authApi';
 import { SplashScreenStyles as styles } from '../../../styles';
 
 const splashColors = {
@@ -80,6 +82,7 @@ function LoadingDots() {
 }
 
 export function SplashScreen({ navigation }) {
+    const { isReady, user } = useAuthSession();
     const heroOpacity = useRef(new Animated.Value(0)).current;
     const heroTranslateY = useRef(new Animated.Value(24)).current;
     const iconScale = useRef(new Animated.Value(0.92)).current;
@@ -87,7 +90,7 @@ export function SplashScreen({ navigation }) {
     const loadingTranslateY = useRef(new Animated.Value(12)).current;
     const hasNavigatedRef = useRef(false);
 
-    const handleContinue = () => {
+    const handleContinue = (nextRouteName = 'SignIn') => {
         if (hasNavigatedRef.current) {
             return;
         }
@@ -95,7 +98,7 @@ export function SplashScreen({ navigation }) {
         hasNavigatedRef.current = true;
         navigation.reset({
             index: 0,
-            routes: [{ name: 'SignIn' }],
+            routes: [{ name: nextRouteName }],
         });
     };
 
@@ -145,14 +148,19 @@ export function SplashScreen({ navigation }) {
     }, [heroOpacity, heroTranslateY, iconScale, loadingOpacity, loadingTranslateY]);
 
     useEffect(() => {
+        if (!isReady) {
+            return undefined;
+        }
+
         const timeoutId = setTimeout(() => {
-            handleContinue();
+            const nextRouteName = getLoginRoute(user) ?? 'SignIn';
+            handleContinue(nextRouteName);
         }, SPLASH_ROUTE_DELAY);
 
         return () => {
             clearTimeout(timeoutId);
         };
-    }, [navigation]);
+    }, [isReady, navigation, user]);
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -187,8 +195,8 @@ export function SplashScreen({ navigation }) {
                         <Text style={styles.brandStrong}>iTravel</Text> <Text style={styles.brandLight}>OOO</Text>
                     </Text>
 
-                    <Text style={styles.title}>Out of Office made simple</Text>
-                    <Text style={styles.subtitle}>Streamline leave requests & consuldant management</Text>
+                    <Text style={styles.title}>Out of Office</Text>
+                    <Text style={styles.subtitle}>Streamline leave requests & consultant management</Text>
 
                     <Animated.View
                         style={[
@@ -199,7 +207,7 @@ export function SplashScreen({ navigation }) {
                             },
                         ]}
                     >
-                        <Text style={styles.loadingText}>Loading your workspace...</Text>
+                        <Text style={styles.loadingText}>Loading...</Text>
                         <LoadingDots />
                     </Animated.View>
                 </Animated.View>

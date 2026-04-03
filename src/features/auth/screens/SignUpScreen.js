@@ -64,6 +64,7 @@ export function SignUpScreen({ navigation }) {
             footerPrefix="Already have an account?"
             onFooterActionPress={() => navigation.navigate('SignIn')}
             title="Create new account"
+            showSocialSection={false}
         >
             <LabeledInput
                 autoCapitalize="none"

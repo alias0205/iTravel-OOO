@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image, Pressable, Text, TextInput, View } from 'react-native';
 
 import { ApprovalScreenLayout } from '../components/ApprovalScreenLayout';
+import { useAuthSession } from '../../auth/context/AuthSessionContext';
 import { ApprovalSettingsScreenStyles as styles } from '../../../styles';
 
 const profileAvatar = require('../../../../assets/nutra/avatars/avatar-6.jpg');
@@ -53,10 +54,13 @@ function SecurityRow({ title, subtitle, actionLabel, tone = 'default' }) {
 }
 
 export function ApprovalSettingsScreen({ navigation }) {
-    const handleSignOut = () => {
+    const { authProfile, signOut } = useAuthSession();
+
+    const handleSignOut = async () => {
+        await signOut();
         navigation?.reset({
             index: 0,
-            routes: [{ name: 'SignIn' }],
+            routes: [{ name: 'Splash' }],
         });
     };
 
@@ -85,9 +89,9 @@ export function ApprovalSettingsScreen({ navigation }) {
                         </Pressable>
                     </View>
 
-                    <SettingsField label="First Name" value="Michael" />
-                    <SettingsField label="Last Name" value="Johnson" />
-                    <SettingsField label="Email Address" value="michael.johnson@company.com" />
+                    <SettingsField label="First Name" value={authProfile?.firstName ?? 'Michael'} />
+                    <SettingsField label="Last Name" value={authProfile?.lastName ?? 'Johnson'} />
+                    <SettingsField label="Email Address" value={authProfile?.email ?? 'michael.johnson@company.com'} />
                 </SettingsSection>
 
                 <SettingsSection icon="shield-check" subtitle="Manage your account security settings" title="Security & Privacy">

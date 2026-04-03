@@ -1,14 +1,15 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image, Pressable, Text, View } from 'react-native';
 
+import { LEAVE_TYPE_ICON } from '../../constants/leaveTypeIcon';
 import { StatusBadge } from './StatusBadge';
 import { ApprovalRequestCardStyles as styles } from '../../../styles';
 
 const leaveTone = {
-    annual: { backgroundColor: '#F1EAFE', color: '#7D32DB', icon: 'beach' },
-    sick: { backgroundColor: '#FDECEC', color: '#D33A33', icon: 'medical-bag' },
-    business: { backgroundColor: '#E7EEFD', color: '#356AE6', icon: 'airplane' },
-    remote: { backgroundColor: '#E3F4E7', color: '#2A8C46', icon: 'home' },
+    annual: { backgroundColor: '#F1EAFE', color: '#7D32DB', icon: LEAVE_TYPE_ICON },
+    sick: { backgroundColor: '#FDECEC', color: '#D33A33', icon: LEAVE_TYPE_ICON },
+    business: { backgroundColor: '#E7EEFD', color: '#356AE6', icon: LEAVE_TYPE_ICON },
+    remote: { backgroundColor: '#E3F4E7', color: '#2A8C46', icon: LEAVE_TYPE_ICON },
 };
 
 export function ApprovalRequestCard({

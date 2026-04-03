@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ScrollView, Text, View, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useAuthSession } from '../../auth/context/AuthSessionContext';
 import { DashboardBottomNav } from '../../../shared/components/dashboard/DashboardBottomNav';
 import { DashboardTopBar } from '../../../shared/components/dashboard/DashboardTopBar';
 import { ConsultantScreenLayoutStyles as styles } from '../../../styles';
@@ -58,6 +59,8 @@ export function ConsultantScreenLayout({
     topBarProps,
     scrollContentStyle,
 }) {
+    const { authProfile, signOut } = useAuthSession();
+
     const navItems = consultantNavItems.map((item) => ({
         ...item,
         badge: item.key === 'notifications' && notificationCount ? notificationCount : undefined,
@@ -75,6 +78,14 @@ export function ConsultantScreenLayout({
         navigation.navigate(item.routeName);
     };
 
+    const handleSidebarSignOut = async () => {
+        await signOut();
+        navigation?.reset({
+            index: 0,
+            routes: [{ name: 'Splash' }],
+        });
+    };
+
     return (
         <SafeAreaView style={styles.safeArea}>
             <DashboardTopBar
@@ -83,14 +94,9 @@ export function ConsultantScreenLayout({
                 leftIconName="menu"
                 notificationCount={notificationCount}
                 onNotificationPress={() => navigation?.navigate('ConsultantNotifications')}
-                onSidebarSignOut={() =>
-                    navigation?.reset({
-                        index: 0,
-                        routes: [{ name: 'SignIn' }],
-                    })
-                }
-                sidebarProfileMeta="Nutrastat"
-                sidebarProfileName="Sarah Connor"
+                onSidebarSignOut={handleSidebarSignOut}
+                sidebarProfileMeta={`${authProfile?.title ?? 'Consultant'}${authProfile?.department ? `, ${authProfile.department}` : ''}`}
+                sidebarProfileName={authProfile?.fullName ?? 'Sarah Connor'}
                 sidebarItems={navItems}
                 sidebarSubtitle="iTravel OOO"
                 sidebarTitle="Consultant Navigation"

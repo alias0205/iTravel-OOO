@@ -4,15 +4,15 @@ import { Alert, View } from 'react-native';
 import { ApprovalConfirmDialog } from '../components/ApprovalConfirmDialog';
 import { ApprovalScreenLayout } from '../components/ApprovalScreenLayout';
 import { approvalRequests } from '../data/approvalRequests';
+import { useAuthSession } from '../../auth/context/AuthSessionContext';
 import { ApprovalDashboardScreenStyles as styles } from '../../../styles';
 import { ApprovalMetricCard } from '../../../shared/components/dashboard/ApprovalMetricCard';
 import { ApprovalRequestCard } from '../../../shared/components/dashboard/ApprovalRequestCard';
 import { DashboardSearchInput } from '../../../shared/components/dashboard/DashboardSearchInput';
 import { DashboardSectionHeader } from '../../../shared/components/dashboard/DashboardSectionHeader';
 
-const approvalAuthName = 'Michael Johnson';
-
 export function ApprovalDashboardScreen({ navigation }) {
+    const { authProfile } = useAuthSession();
     const [pendingApprovalRequest, setPendingApprovalRequest] = useState(null);
 
     return (
@@ -20,7 +20,7 @@ export function ApprovalDashboardScreen({ navigation }) {
             <ApprovalScreenLayout
                 activeNavKey="dashboard"
                 headerSubtitle="Review requests and pending actions"
-                headerTitle={`Welcome, ${approvalAuthName}`}
+                headerTitle={`Welcome, ${authProfile?.fullName ?? 'Michael Johnson'}`}
                 navigation={navigation}
                 notificationCount={8}
                 scrollContentStyle={styles.scrollContent}

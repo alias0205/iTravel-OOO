@@ -6,6 +6,7 @@ import { ApprovalConfirmDialog } from '../components/ApprovalConfirmDialog';
 import { ApprovalScreenLayout } from '../components/ApprovalScreenLayout';
 import { approvalAvatarSources } from '../data/approvalAvatarSources';
 import { getApprovalDurationBreakdown } from '../utils/approvalDurationUtils';
+import { LEAVE_TYPE_ICON } from '../../../shared/constants/leaveTypeIcon';
 import { ApprovalRequestReviewScreenStyles as styles } from '../../../styles';
 
 const employeeAvatar = require('../../../../assets/nutra/avatars/avatar-5.jpg');
@@ -31,13 +32,6 @@ const defaultRequest = {
     usedThisYear: '10',
     annualLeaveUsage: '18/25 days',
     annualLeaveUsagePercent: 72,
-};
-
-const leaveTypeIcons = {
-    annual: 'beach',
-    sick: 'medical-bag',
-    business: 'airplane',
-    remote: 'home',
 };
 
 const leaveTypeColors = {
@@ -92,7 +86,6 @@ export function ApprovalRequestReviewScreen({ navigation, route }) {
 
     const request = useMemo(() => ({ ...defaultRequest, ...(route?.params?.request ?? {}) }), [route?.params?.request]);
     const leaveTone = leaveTypeColors[request.leaveToneKey] ?? leaveTypeColors.annual;
-    const leaveIcon = leaveTypeIcons[request.leaveToneKey] ?? leaveTypeIcons.annual;
     const employeePhoto = request.avatarSource ?? approvalAvatarSources[request.avatarLabel] ?? employeeAvatar;
     const durationBreakdown = useMemo(() => getApprovalDurationBreakdown(request), [request]);
 
@@ -145,7 +138,7 @@ export function ApprovalRequestReviewScreen({ navigation, route }) {
                             label="Leave Type"
                             trailingTag={
                                 <View style={[styles.leaveTypeTag, { backgroundColor: leaveTone.backgroundColor }]}>
-                                    <MaterialCommunityIcons color={leaveTone.color} name={leaveIcon} size={12} />
+                                    <MaterialCommunityIcons color={leaveTone.color} name={LEAVE_TYPE_ICON} size={12} />
                                     <Text style={[styles.leaveTypeTagText, { color: leaveTone.color }]}>{request.leaveLabel}</Text>
                                 </View>
                             }

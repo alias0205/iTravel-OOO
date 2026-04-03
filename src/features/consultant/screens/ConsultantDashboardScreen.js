@@ -3,6 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { ConsultantScreenLayout } from '../components/ConsultantScreenLayout';
 import { consultantRecentRequests } from '../data/consultantRequests';
+import { useAuthSession } from '../../auth/context/AuthSessionContext';
 import { ConsultantDashboardScreenStyles as styles } from '../../../styles';
 import { DashboardSectionHeader } from '../../../shared/components/dashboard/DashboardSectionHeader';
 import { MetricStatCard } from '../../../shared/components/dashboard/MetricStatCard';
@@ -10,11 +11,13 @@ import { QuickStatCard } from '../../../shared/components/dashboard/QuickStatCar
 import { RequestCard } from '../../../shared/components/dashboard/RequestCard';
 
 export function ConsultantDashboardScreen({ navigation }) {
+    const { authProfile } = useAuthSession();
+
     return (
         <ConsultantScreenLayout
             activeNavKey="home"
             headerSubtitle="Manage your availability and time off"
-            headerTitle="Welcome back, Sarah"
+            headerTitle={`Welcome back, ${authProfile?.firstName ?? 'Sarah'}`}
             navigation={navigation}
             notificationCount={3}
             scrollContentStyle={styles.scrollContent}

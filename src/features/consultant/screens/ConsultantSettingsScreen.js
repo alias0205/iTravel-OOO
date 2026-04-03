@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image, Pressable, Text, TextInput, View } from 'react-native';
 
 import { ConsultantScreenLayout } from '../components/ConsultantScreenLayout';
+import { useAuthSession } from '../../auth/context/AuthSessionContext';
 import { ConsultantSettingsScreenStyles as styles } from '../../../styles';
 
 const profileAvatar = require('../../../../assets/nutra/avatars/avatar-4.jpg');
@@ -65,6 +66,16 @@ function SecurityRow({ title, subtitle, actionLabel, tone = 'default' }) {
 }
 
 export function ConsultantSettingsScreen({ navigation }) {
+    const { authProfile, signOut } = useAuthSession();
+
+    const handleSignOut = async () => {
+        await signOut();
+        navigation?.reset({
+            index: 0,
+            routes: [{ name: 'Splash' }],
+        });
+    };
+
     return (
         <ConsultantScreenLayout
             activeNavKey="settings"
@@ -90,16 +101,16 @@ export function ConsultantSettingsScreen({ navigation }) {
                         </Pressable>
                     </View>
 
-                    <SettingsField label="First Name" value="Michael" />
-                    <SettingsField label="Last Name" value="Chen" />
-                    <SettingsField label="Email Address" value="michael.chen@company.com" />
+                    <SettingsField label="First Name" value={authProfile?.firstName ?? 'Michael'} />
+                    <SettingsField label="Last Name" value={authProfile?.lastName ?? 'Chen'} />
+                    <SettingsField label="Email Address" value={authProfile?.email ?? 'michael.chen@company.com'} />
                 </SettingsSection>
 
                 <SettingsSection icon="shield-check" subtitle="Manage your account security settings" title="Security & Privacy">
                     <SecurityRow actionLabel="Change Password" subtitle="Last changed 3 months ago" title="Password" />
                 </SettingsSection>
 
-                <Pressable style={styles.signOutButton}>
+                <Pressable onPress={handleSignOut} style={styles.signOutButton}>
                     <MaterialCommunityIcons color="#EF4444" name="logout-variant" size={18} />
                     <Text style={styles.signOutText}>Sign Out</Text>
                 </Pressable>

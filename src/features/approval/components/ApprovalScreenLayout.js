@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ScrollView, Text, View, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useAuthSession } from '../../auth/context/AuthSessionContext';
 import { DashboardBottomNav } from '../../../shared/components/dashboard/DashboardBottomNav';
 import { DashboardTopBar } from '../../../shared/components/dashboard/DashboardTopBar';
 import { ApprovalScreenLayoutStyles as styles } from '../../../styles';
@@ -55,6 +56,8 @@ export function ApprovalScreenLayout({
     scrollContentStyle,
     topBarProps,
 }) {
+    const { authProfile, signOut } = useAuthSession();
+
     const navItems = approvalNavItems.map((item) => ({
         ...item,
         badge: item.key === 'notifications' ? notificationCount : item.badge,
@@ -68,22 +71,25 @@ export function ApprovalScreenLayout({
         navigation?.navigate(item.routeName);
     };
 
+    const handleSidebarSignOut = async () => {
+        await signOut();
+        navigation?.reset({
+            index: 0,
+            routes: [{ name: 'Splash' }],
+        });
+    };
+
     return (
         <SafeAreaView style={styles.safeArea}>
             <DashboardTopBar
                 avatarPressRouteName="ApprovalSettings"
-                avatarLabel="MJ"
+                avatarLabel={authProfile?.initials ?? 'MJ'}
                 leftIconName="menu"
                 notificationCount={notificationCount}
                 onNotificationPress={() => navigation?.navigate('ApprovalNotifications')}
-                onSidebarSignOut={() =>
-                    navigation?.reset({
-                        index: 0,
-                        routes: [{ name: 'SignIn' }],
-                    })
-                }
-                sidebarProfileMeta="Manager, Nutrastat"
-                sidebarProfileName="Michael Johnson"
+                onSidebarSignOut={handleSidebarSignOut}
+                sidebarProfileMeta={`${authProfile?.title ?? 'Manager'}, ${authProfile?.department ?? 'Nutrastat'}`}
+                sidebarProfileName={authProfile?.fullName ?? 'Michael Johnson'}
                 sidebarItems={navItems}
                 sidebarSubtitle="Nutrastat"
                 sidebarTitle="iTravel OOO"
