@@ -8,6 +8,39 @@ function buildInitials(firstName, lastName, name) {
     return `${firstInitial}${lastInitial}`.toUpperCase() || 'IT';
 }
 
+function buildAvatarSource(user) {
+    const avatarCandidates = [
+        user?.avatar_url,
+        user?.avatar,
+        user?.profile_photo_url,
+        user?.profile_photo,
+        user?.profile_image_url,
+        user?.profile_image,
+        user?.image_url,
+        user?.image,
+        user?.photo_url,
+        user?.photo,
+    ];
+
+    const avatarValue = avatarCandidates.find((candidate) => {
+        if (typeof candidate === 'string') {
+            return candidate.trim().length > 0;
+        }
+
+        return Boolean(candidate?.uri);
+    });
+
+    if (!avatarValue) {
+        return null;
+    }
+
+    if (typeof avatarValue === 'string') {
+        return { uri: avatarValue.trim() };
+    }
+
+    return avatarValue;
+}
+
 export function getAuthProfile(user) {
     if (!user) {
         return null;
@@ -28,6 +61,7 @@ export function getAuthProfile(user) {
         title: roleLabel,
         department: departmentLabel,
         initials: buildInitials(firstName, lastName, fullName),
+        avatarSource: buildAvatarSource(user),
         isApproval,
         isConsultant: Boolean(user.is_consultant),
         rawUser: user,

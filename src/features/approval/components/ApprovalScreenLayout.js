@@ -10,7 +10,7 @@ import { ApprovalScreenLayoutStyles as styles } from '../../../styles';
 const approvalNavItems = [
     { key: 'dashboard', label: 'Dashboard', icon: 'view-dashboard-outline', routeName: 'ApprovalDashboard' },
     { key: 'calendar', label: 'Calendar', icon: 'calendar-month-outline', routeName: 'ApprovalCalendar' },
-    { key: 'approvals', label: 'Approvals', icon: 'clipboard-check-outline', routeName: 'ApprovalRequestList', badge: 1 },
+    { key: 'approvals', label: 'Requests', icon: 'clipboard-check-outline', routeName: 'ApprovalRequestList', badge: 1 },
     { key: 'notifications', label: 'Notifications', icon: 'bell-outline', routeName: 'ApprovalNotifications', badge: 8 },
     { key: 'settings', label: 'Settings', icon: 'cog-outline', routeName: 'ApprovalSettings' },
 ];
@@ -84,6 +84,7 @@ export function ApprovalScreenLayout({
             <DashboardTopBar
                 avatarPressRouteName="ApprovalSettings"
                 avatarLabel={authProfile?.initials ?? 'MJ'}
+                avatarSource={authProfile?.avatarSource}
                 leftIconName="menu"
                 notificationCount={notificationCount}
                 onNotificationPress={() => navigation?.navigate('ApprovalNotifications')}

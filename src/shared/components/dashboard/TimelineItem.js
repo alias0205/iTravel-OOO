@@ -7,6 +7,7 @@ const toneMap = {
     submitted: { backgroundColor: '#E6EEFD', color: '#356AE6', icon: 'send' },
     review: { backgroundColor: '#FFF2C9', color: '#C38E08', icon: 'clock-time-four' },
     approved: { backgroundColor: '#DDF4E4', color: '#2A9A49', icon: 'check' },
+    rejected: { backgroundColor: '#FDECEC', color: '#D33A33', icon: 'close' },
 };
 
 export function TimelineItem({ title, timestamp, detail, tone = 'submitted', isLast = false }) {

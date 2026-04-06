@@ -103,11 +103,15 @@ const styles = StyleSheet.create({
         fontWeight: '700',
     },
     optionList: {
+        maxHeight: 280,
         borderRadius: 14,
         borderWidth: 1,
         borderColor: '#D7DEE8',
         backgroundColor: '#FFFFFF',
         overflow: 'hidden',
+    },
+    optionListScroll: {
+        maxHeight: 280,
     },
     optionListOverlay: {
         position: 'absolute',
@@ -120,6 +124,35 @@ const styles = StyleSheet.create({
         shadowRadius: 12,
         shadowOffset: { width: 0, height: 6 },
         elevation: 6,
+    },
+    modalBackdrop: {
+        flex: 1,
+        backgroundColor: 'rgba(15, 23, 42, 0.32)',
+        justifyContent: 'center',
+        paddingHorizontal: 16,
+    },
+    modalSheet: {
+        maxHeight: '70%',
+        borderRadius: 18,
+        borderWidth: 1,
+        borderColor: '#D7DEE8',
+        backgroundColor: '#FFFFFF',
+        overflow: 'hidden',
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 18,
+        paddingVertical: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#EEF2F5',
+    },
+    modalTitle: {
+        color: '#111827',
+        fontSize: 16,
+        lineHeight: 22,
+        fontWeight: '800',
     },
     optionItem: {
         minHeight: 46,
@@ -148,6 +181,20 @@ const styles = StyleSheet.create({
         color: '#DC2626',
         fontSize: 12,
         lineHeight: 18,
+    },
+    retryButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        marginTop: -6,
+        marginBottom: 12,
+        gap: 6,
+    },
+    retryButtonText: {
+        color: '#0A6B63',
+        fontSize: 13,
+        lineHeight: 18,
+        fontWeight: '700',
     },
     textAreaShell: {
         borderRadius: 14,

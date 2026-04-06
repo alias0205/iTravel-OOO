@@ -37,6 +37,23 @@ const styles = StyleSheet.create({
     headerCopy: {
         flex: 1,
     },
+    leaveMetaRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+    },
+    statusWrap: {
+        alignItems: 'flex-end',
+        marginLeft: 12,
+        flexShrink: 0,
+    },
+    leaveReviewerText: {
+        color: '#6F7787',
+        fontSize: 12,
+        lineHeight: 16,
+        fontWeight: '600',
+        marginLeft: 8,
+    },
     name: {
         color: '#232B39',
         fontSize: 16,
@@ -44,7 +61,7 @@ const styles = StyleSheet.create({
         fontWeight: '800',
         marginBottom: 2,
     },
-    department: {
+    role: {
         color: '#6F7787',
         fontSize: 12,
         lineHeight: 17,
@@ -68,6 +85,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 14,
+    },
+    dateRowClosed: {
+        marginBottom: 0,
     },
     dateText: {
         color: '#6F7787',

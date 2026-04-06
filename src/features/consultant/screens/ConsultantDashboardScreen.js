@@ -1,6 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, Text, View } from 'react-native';
 
+import { getApprovalDurationBreakdown } from '../../approval/utils/approvalDurationUtils';
 import { ConsultantScreenLayout } from '../components/ConsultantScreenLayout';
 import { consultantRecentRequests } from '../data/consultantRequests';
 import { useAuthSession } from '../../auth/context/AuthSessionContext';
@@ -9,6 +10,16 @@ import { DashboardSectionHeader } from '../../../shared/components/dashboard/Das
 import { MetricStatCard } from '../../../shared/components/dashboard/MetricStatCard';
 import { QuickStatCard } from '../../../shared/components/dashboard/QuickStatCard';
 import { RequestCard } from '../../../shared/components/dashboard/RequestCard';
+
+function getCompactDurationBreakdown(request) {
+    const durationBreakdown = getApprovalDurationBreakdown(request);
+
+    if (!durationBreakdown) {
+        return request.detail;
+    }
+
+    return `${durationBreakdown.totalDays}/${durationBreakdown.weekendDays}/${durationBreakdown.bankHolidayDays}`;
+}
 
 export function ConsultantDashboardScreen({ navigation }) {
     const { authProfile } = useAuthSession();
@@ -76,7 +87,7 @@ export function ConsultantDashboardScreen({ navigation }) {
                 {consultantRecentRequests.map((request) => (
                     <RequestCard
                         dateRange={request.dateRange}
-                        detail={request.detail}
+                        detail={getCompactDurationBreakdown(request)}
                         duration={request.duration}
                         icon={request.icon}
                         iconColor={request.iconColor}

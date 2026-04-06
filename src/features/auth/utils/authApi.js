@@ -1,4 +1,5 @@
-const API_BASE_URL = 'https://ooo.nutrastat.com';
+import { apiRequest } from '../../../app/api/apiClient';
+
 const LOGIN_ENDPOINT = '/api/auth/login';
 const DEFAULT_DEVICE_NAME = 'Mobile App';
 
@@ -15,22 +16,16 @@ export function getLoginRoute(user) {
 }
 
 export async function loginWithPassword({ email, password, deviceName = DEFAULT_DEVICE_NAME }) {
-    const response = await fetch(`${API_BASE_URL}${LOGIN_ENDPOINT}`, {
+    const { ok, payload } = await apiRequest(LOGIN_ENDPOINT, {
         method: 'POST',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+        body: {
             email: email.trim(),
             password,
             device_name: deviceName,
-        }),
+        },
     });
 
-    const payload = await response.json().catch(() => null);
-
-    if (!response.ok) {
+    if (!ok) {
         throw new Error(payload?.message || 'Unable to sign in. Please check your credentials and try again.');
     }
 

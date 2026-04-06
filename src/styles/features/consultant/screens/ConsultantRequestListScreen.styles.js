@@ -63,6 +63,56 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         paddingVertical: 30,
     },
+    infoState: {
+        color: '#475569',
+        fontSize: 15,
+        lineHeight: 22,
+        textAlign: 'center',
+        paddingVertical: 24,
+    },
+    errorState: {
+        color: '#DC2626',
+        fontSize: 14,
+        lineHeight: 20,
+        textAlign: 'center',
+        marginBottom: 12,
+    },
+    retryWrap: {
+        alignItems: 'center',
+        paddingVertical: 24,
+    },
+    retryButton: {
+        minHeight: 42,
+        paddingHorizontal: 18,
+        borderRadius: 999,
+        backgroundColor: '#0A6B63',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    retryButtonText: {
+        color: '#FFFFFF',
+        fontSize: 14,
+        lineHeight: 18,
+        fontWeight: '800',
+    },
+    loadMoreButton: {
+        minHeight: 46,
+        marginTop: 8,
+        marginBottom: 16,
+        borderRadius: 14,
+        backgroundColor: '#0A6B63',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    loadMoreButtonDisabled: {
+        backgroundColor: '#7AA8A3',
+    },
+    loadMoreButtonText: {
+        color: '#FFFFFF',
+        fontSize: 15,
+        lineHeight: 20,
+        fontWeight: '800',
+    },
 });
 
 export { styles };

@@ -8,21 +8,35 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingTop: 18,
     },
-    employeeCard: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        padding: 16,
-        marginBottom: 16,
+    employeeCardInline: {
         flexDirection: 'row',
-        alignItems: 'flex-start',
+        alignItems: 'center',
+    },
+    employeeCardTop: {
+        borderBottomWidth: 1,
+        borderBottomColor: '#E5E7EB',
+        paddingTop: 16,
     },
     employeeAvatar: {
         width: 52,
         height: 52,
         borderRadius: 26,
         marginRight: 14,
+    },
+    employeeAvatarFallback: {
+        width: 52,
+        height: 52,
+        borderRadius: 26,
+        marginRight: 14,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#D7E3E1',
+    },
+    employeeAvatarText: {
+        color: '#23434C',
+        fontSize: 18,
+        lineHeight: 20,
+        fontWeight: '800',
     },
     employeeCopy: {
         flex: 1,
@@ -38,11 +52,10 @@ const styles = StyleSheet.create({
         color: '#4B5563',
         fontSize: 14,
         lineHeight: 20,
-        marginBottom: 10,
     },
     employeeMetaRow: {
         flexDirection: 'row',
-        alignItems: 'flex-start',
+        alignItems: 'center',
         marginBottom: 4,
     },
     employeeMetaText: {
@@ -128,7 +141,87 @@ const styles = StyleSheet.create({
         color: '#1F2937',
         fontSize: 15,
         lineHeight: 28,
-        marginBottom: 16,
+    },
+    reviewerRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+    },
+    reviewerAvatarFallback: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        marginRight: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#D7E3E1',
+    },
+    reviewerAvatarText: {
+        color: '#23434C',
+        fontSize: 16,
+        lineHeight: 18,
+        fontWeight: '800',
+    },
+    reviewerCopy: {
+        flex: 1,
+    },
+    reviewerName: {
+        color: '#1F2937',
+        fontSize: 16,
+        lineHeight: 22,
+        fontWeight: '800',
+        marginBottom: 2,
+    },
+    reviewerRole: {
+        color: '#475569',
+        fontSize: 14,
+        lineHeight: 20,
+    },
+    reviewerEmail: {
+        color: '#64748B',
+        fontSize: 14,
+        lineHeight: 20,
+        marginTop: 2,
+    },
+    reviewerSummaryBox: {
+        marginTop: 16,
+        borderWidth: 1,
+        borderRadius: 12,
+        padding: 14,
+    },
+    reviewerSummaryBoxApproved: {
+        borderColor: '#BBF7D0',
+        backgroundColor: '#F0FDF4',
+    },
+    reviewerSummaryBoxRejected: {
+        borderColor: '#FECACA',
+        backgroundColor: '#FEF2F2',
+    },
+    reviewerSummaryHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    reviewerSummaryTitle: {
+        fontSize: 14,
+        lineHeight: 20,
+        fontWeight: '700',
+        marginLeft: 8,
+    },
+    reviewerSummaryTitleApproved: {
+        color: '#1B7841',
+    },
+    reviewerSummaryTitleRejected: {
+        color: '#B42318',
+    },
+    reviewerSummaryNote: {
+        fontSize: 14,
+        lineHeight: 22,
+    },
+    reviewerSummaryNoteApproved: {
+        color: '#238147',
+    },
+    reviewerSummaryNoteRejected: {
+        color: '#B42318',
     },
     balanceGrid: {
         flexDirection: 'row',
@@ -216,6 +309,10 @@ const styles = StyleSheet.create({
         color: '#1F2937',
         fontSize: 15,
         lineHeight: 22,
+    },
+    commentInputDisabled: {
+        backgroundColor: '#F8FAFC',
+        color: '#64748B',
     },
     actionButton: {
         minHeight: 48,

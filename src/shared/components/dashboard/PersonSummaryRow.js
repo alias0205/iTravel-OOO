@@ -16,7 +16,7 @@ export function PersonSummaryRow({ avatarLabel, avatarSource, name, subtitle, ex
 
             <View style={styles.copy}>
                 <Text style={styles.name}>{name}</Text>
-                <Text style={styles.subtitle}>{subtitle}</Text>
+                {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
                 {extra ? <Text style={styles.extra}>{extra}</Text> : null}
             </View>
 

@@ -7,8 +7,6 @@ import { DashboardBottomNav } from '../../../shared/components/dashboard/Dashboa
 import { DashboardTopBar } from '../../../shared/components/dashboard/DashboardTopBar';
 import { ConsultantScreenLayoutStyles as styles } from '../../../styles';
 
-const consultantAvatar = require('../../../../assets/nutra/avatars/avatar-1.jpg');
-
 const consultantNavItems = [
     { key: 'home', label: 'Home', icon: 'home', routeName: 'ConsultantDashboard' },
     { key: 'requests', label: 'Requests', icon: 'clipboard-text-outline', routeName: 'ConsultantRequestList' },
@@ -58,6 +56,7 @@ export function ConsultantScreenLayout({
     topBarVariant = 'light',
     topBarProps,
     scrollContentStyle,
+    scrollEnabled = true,
 }) {
     const { authProfile, signOut } = useAuthSession();
 
@@ -90,7 +89,8 @@ export function ConsultantScreenLayout({
         <SafeAreaView style={styles.safeArea}>
             <DashboardTopBar
                 avatarPressRouteName="ConsultantSettings"
-                avatarSource={consultantAvatar}
+                avatarLabel={authProfile?.initials ?? 'SC'}
+                avatarSource={authProfile?.avatarSource}
                 leftIconName="menu"
                 notificationCount={notificationCount}
                 onNotificationPress={() => navigation?.navigate('ConsultantNotifications')}
@@ -116,7 +116,13 @@ export function ConsultantScreenLayout({
                 title={headerTitle}
             />
 
-            <ScrollView contentContainerStyle={[styles.scrollContent, scrollContentStyle]} showsVerticalScrollIndicator={false}>
+            <ScrollView
+                contentContainerStyle={[styles.scrollContent, scrollContentStyle]}
+                keyboardShouldPersistTaps="handled"
+                nestedScrollEnabled
+                scrollEnabled={scrollEnabled}
+                showsVerticalScrollIndicator={false}
+            >
                 {children}
             </ScrollView>
 

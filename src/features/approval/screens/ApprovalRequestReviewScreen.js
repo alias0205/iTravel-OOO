@@ -4,12 +4,12 @@ import { Alert, Image, Pressable, Text, TextInput, View } from 'react-native';
 
 import { ApprovalConfirmDialog } from '../components/ApprovalConfirmDialog';
 import { ApprovalScreenLayout } from '../components/ApprovalScreenLayout';
-import { approvalAvatarSources } from '../data/approvalAvatarSources';
 import { getApprovalDurationBreakdown } from '../utils/approvalDurationUtils';
+import { approveOutOfOfficeRequest, rejectOutOfOfficeRequest } from '../utils/approvalRequestsApi';
+import { useAuthSession } from '../../auth/context/AuthSessionContext';
 import { LEAVE_TYPE_ICON } from '../../../shared/constants/leaveTypeIcon';
+import { StatusBadge } from '../../../shared/components/dashboard/StatusBadge';
 import { ApprovalRequestReviewScreenStyles as styles } from '../../../styles';
-
-const employeeAvatar = require('../../../../assets/nutra/avatars/avatar-5.jpg');
 
 const defaultRequest = {
     avatarLabel: 'SJ',
@@ -40,6 +40,34 @@ const leaveTypeColors = {
     business: { backgroundColor: '#E7EEFD', color: '#356AE6' },
     remote: { backgroundColor: '#E3F4E7', color: '#2A8C46' },
 };
+
+function buildAvatarLabel(fullName) {
+    const parts = String(fullName || '')
+        .split(' ')
+        .filter(Boolean);
+
+    return `${parts[0]?.[0] || ''}${parts[1]?.[0] || ''}`.toUpperCase() || 'RV';
+}
+
+function formatReviewedAt(dateValue) {
+    if (!dateValue) {
+        return 'Review date unavailable';
+    }
+
+    const parsedDate = new Date(dateValue);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+        return 'Review date unavailable';
+    }
+
+    return parsedDate.toLocaleString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+    });
+}
 
 function SectionCard({ icon, title, children }) {
     return (
@@ -81,28 +109,111 @@ function BalanceMetric({ value, label, tone = 'default' }) {
 }
 
 export function ApprovalRequestReviewScreen({ navigation, route }) {
+    const { session, signOut } = useAuthSession();
     const [comment, setComment] = useState('');
     const [pendingDecision, setPendingDecision] = useState(null);
+    const [isSubmittingDecision, setIsSubmittingDecision] = useState(false);
 
     const request = useMemo(() => ({ ...defaultRequest, ...(route?.params?.request ?? {}) }), [route?.params?.request]);
     const leaveTone = leaveTypeColors[request.leaveToneKey] ?? leaveTypeColors.annual;
-    const employeePhoto = request.avatarSource ?? approvalAvatarSources[request.avatarLabel] ?? employeeAvatar;
     const durationBreakdown = useMemo(() => getApprovalDurationBreakdown(request), [request]);
+    const isReadOnlyRequest = request.statusTone === 'approved' || request.statusTone === 'rejected';
+    const commentValue = isReadOnlyRequest ? request.reviewComment || '' : comment;
+    const reviewerName = request.reviewerName || request?.raw?.review?.reviewer?.name || 'Reviewer unavailable';
+    const reviewerEmail = request?.raw?.review?.reviewer?.email || 'Email unavailable';
+    const reviewerAvatarLabel = buildAvatarLabel(reviewerName);
+    const reviewerSummaryTitle = 'Review Information';
+    const reviewerSummaryHeading = request.statusTone === 'approved' ? `Approved by ${reviewerName}` : `Rejected by ${reviewerName}`;
+    const reviewerSummaryTone = request.statusTone === 'approved' ? styles.reviewerSummaryBoxApproved : styles.reviewerSummaryBoxRejected;
+    const reviewerSummaryTitleStyle = request.statusTone === 'approved' ? styles.reviewerSummaryTitleApproved : styles.reviewerSummaryTitleRejected;
+    const reviewerSummaryNoteStyle = request.statusTone === 'approved' ? styles.reviewerSummaryNoteApproved : styles.reviewerSummaryNoteRejected;
+    const reviewerSummaryIconColor = request.statusTone === 'approved' ? '#1B7841' : '#B42318';
+    const reviewerSummaryIcon = request.statusTone === 'approved' ? 'check-circle' : 'close-circle';
+    const reviewerSummaryNote = request.reviewComment || request.reason || 'No review comment provided.';
 
     const handleApprovalDecision = () => {
-        const decision = pendingDecision;
-        const actionLabel = decision === 'approve' ? 'Approve' : 'Reject';
-        const successLabel = decision === 'approve' ? 'approved' : 'rejected';
+        void (async () => {
+            const decision = pendingDecision;
+            const isRejectDecision = decision === 'reject';
 
-        setPendingDecision(null);
-        Alert.alert('Request Updated', request.name + "'s " + request.leaveLabel.toLowerCase() + ' request was ' + successLabel + (comment ? '. Your comment was included.' : '.'));
-        navigation.goBack();
+            if (isReadOnlyRequest) {
+                setPendingDecision(null);
+                return;
+            }
+
+            if ((decision !== 'approve' && !isRejectDecision) || isSubmittingDecision) {
+                return;
+            }
+
+            setIsSubmittingDecision(true);
+
+            try {
+                if (isRejectDecision) {
+                    await rejectOutOfOfficeRequest({
+                        holidayId: request?.raw?.id || request?.id,
+                        reviewComment: comment.trim(),
+                        token: session?.token,
+                    });
+                } else {
+                    await approveOutOfOfficeRequest({
+                        holidayId: request?.raw?.id || request?.id,
+                        reviewComment: comment.trim(),
+                        token: session?.token,
+                    });
+                }
+
+                setPendingDecision(null);
+                Alert.alert(
+                    isRejectDecision ? 'Request Rejected' : 'Request Approved',
+                    request.name +
+                        "'s " +
+                        request.leaveLabel.toLowerCase() +
+                        ` request was ${isRejectDecision ? 'rejected' : 'approved'}` +
+                        (comment ? '. Your comment was included.' : '.'),
+                    [
+                        {
+                            text: 'OK',
+                            onPress: () => navigation.goBack(),
+                        },
+                    ]
+                );
+            } catch (error) {
+                const message = error instanceof Error ? error.message : 'Unable to approve this request right now.';
+                const status = error?.status;
+
+                if (status === 401 || message.toLowerCase().includes('unauthenticated')) {
+                    await signOut();
+                    navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'Splash' }],
+                    });
+                    return;
+                }
+
+                if (status === 403) {
+                    Alert.alert(
+                        isRejectDecision ? 'Rejection Not Allowed' : 'Approval Not Allowed',
+                        message || `You are not allowed to ${isRejectDecision ? 'reject' : 'approve'} requests.`
+                    );
+                    return;
+                }
+
+                if (status === 409) {
+                    Alert.alert('Already Reviewed', message || 'This request has already been reviewed.');
+                    return;
+                }
+
+                Alert.alert(isRejectDecision ? 'Rejection Failed' : 'Approval Failed', message);
+            } finally {
+                setIsSubmittingDecision(false);
+            }
+        })();
     };
 
     return (
         <ApprovalScreenLayout
             activeNavKey="approvals"
-            headerSubtitle={request.leaveLabel + ' Application'}
+            headerSubtitle={request.leaveLabel + ' Request'}
             headerTitle="Review Request"
             navigation={navigation}
             notificationCount={5}
@@ -110,29 +221,31 @@ export function ApprovalRequestReviewScreen({ navigation, route }) {
             showBackButton
         >
             <View style={styles.pagePadding}>
-                <View style={styles.employeeCard}>
-                    <Image source={employeePhoto} style={styles.employeeAvatar} />
+                <View style={styles.sectionCard}>
+                    <View style={styles.employeeCardTop}>
+                        <View style={styles.sectionBody}>
+                            <View style={styles.employeeCardInline}>
+                                {request.avatarSource ? (
+                                    <Image source={request.avatarSource} style={styles.employeeAvatar} />
+                                ) : (
+                                    <View style={styles.employeeAvatarFallback}>
+                                        <Text style={styles.employeeAvatarText}>{request.avatarLabel}</Text>
+                                    </View>
+                                )}
 
-                    <View style={styles.employeeCopy}>
-                        <Text style={styles.employeeName}>{request.name}</Text>
-                        <Text style={styles.employeeRole}>{request.role}</Text>
-
-                        <View style={styles.employeeMetaRow}>
-                            <MaterialCommunityIcons color="#6B7280" name="office-building-outline" size={15} />
-                            <Text style={styles.employeeMetaText}>{request.department + ' - ' + request.office}</Text>
-                        </View>
-                        <View style={styles.employeeMetaRow}>
-                            <MaterialCommunityIcons color="#6B7280" name="account-supervisor-outline" size={15} />
-                            <Text style={styles.employeeMetaText}>{'Reports to: ' + request.manager + ' -> You'}</Text>
-                        </View>
-                        <View style={styles.employeeMetaRow}>
-                            <MaterialCommunityIcons color="#6B7280" name="card-account-details-outline" size={15} />
-                            <Text style={styles.employeeMetaText}>{'Employee ID: ' + request.employeeId}</Text>
+                                <View style={styles.employeeCopy}>
+                                    <Text style={styles.employeeName}>{request.name}</Text>
+                                    <Text style={styles.employeeRole}>{request.role}</Text>
+                                </View>
+                            </View>
                         </View>
                     </View>
-                </View>
 
-                <SectionCard icon="clipboard-text" title="Request Summary">
+                    <View style={styles.sectionHeader}>
+                        <MaterialCommunityIcons color="#0A6B63" name="clipboard-text" size={20} />
+                        <Text style={styles.sectionTitle}>Request Summary</Text>
+                    </View>
+
                     <View style={styles.sectionBody}>
                         <SummaryRow
                             label="Leave Type"
@@ -145,6 +258,7 @@ export function ApprovalRequestReviewScreen({ navigation, route }) {
                         />
                         <SummaryRow label="Dates" value={request.dateRange} />
                         <SummaryRow label="Duration" value={durationBreakdown?.label ?? request.durationLabel ?? request.duration} />
+                        <SummaryRow label="Status" trailingTag={<StatusBadge label={request.statusLabel} tone={request.statusTone} />} />
                         <SummaryRow label="Submitted" value={request.submittedAt} />
 
                         <View style={styles.sectionDivider} />
@@ -152,7 +266,33 @@ export function ApprovalRequestReviewScreen({ navigation, route }) {
                         <Text style={styles.reasonLabel}>Reason</Text>
                         <Text style={styles.reasonText}>{request.reason}</Text>
                     </View>
-                </SectionCard>
+                </View>
+
+                {isReadOnlyRequest ? (
+                    <SectionCard icon="account-check-outline" title={reviewerSummaryTitle}>
+                        <View style={styles.sectionBody}>
+                            <View style={styles.reviewerRow}>
+                                <View style={styles.reviewerAvatarFallback}>
+                                    <Text style={styles.reviewerAvatarText}>{reviewerAvatarLabel}</Text>
+                                </View>
+
+                                <View style={styles.reviewerCopy}>
+                                    <Text style={styles.reviewerName}>{reviewerName}</Text>
+                                    <Text style={styles.reviewerRole}>{formatReviewedAt(request.reviewedAt)}</Text>
+                                    <Text style={styles.reviewerEmail}>{reviewerEmail}</Text>
+                                </View>
+                            </View>
+
+                            <View style={[styles.reviewerSummaryBox, reviewerSummaryTone]}>
+                                <View style={styles.reviewerSummaryHeader}>
+                                    <MaterialCommunityIcons color={reviewerSummaryIconColor} name={reviewerSummaryIcon} size={18} />
+                                    <Text style={[styles.reviewerSummaryTitle, reviewerSummaryTitleStyle]}>{reviewerSummaryHeading}</Text>
+                                </View>
+                                <Text style={[styles.reviewerSummaryNote, reviewerSummaryNoteStyle]}>"{reviewerSummaryNote}"</Text>
+                            </View>
+                        </View>
+                    </SectionCard>
+                ) : null}
 
                 {/* <SectionCard icon="chart-donut" title="Leave Balance">
                     <View style={styles.sectionBody}>
@@ -173,34 +313,41 @@ export function ApprovalRequestReviewScreen({ navigation, route }) {
                     </View>
                 </SectionCard> */}
 
-                <View style={styles.commentCard}>
-                    <Text style={styles.commentTitle}>Add Comment (Optional)</Text>
-                    <TextInput
-                        multiline
-                        onChangeText={setComment}
-                        placeholder="Add a note for the employee or HR..."
-                        placeholderTextColor="#9CA3AF"
-                        style={styles.commentInput}
-                        textAlignVertical="top"
-                        value={comment}
-                    />
-                </View>
+                {!isReadOnlyRequest ? (
+                    <View style={styles.commentCard}>
+                        <Text style={styles.commentTitle}>Add Comment (Optional)</Text>
+                        <TextInput
+                            editable
+                            multiline
+                            onChangeText={setComment}
+                            placeholder="Add a note for the employee or HR..."
+                            placeholderTextColor="#9CA3AF"
+                            style={styles.commentInput}
+                            textAlignVertical="top"
+                            value={commentValue}
+                        />
+                    </View>
+                ) : null}
 
-                <Pressable onPress={() => setPendingDecision('approve')} style={[styles.actionButton, styles.actionButtonApprove]}>
-                    <MaterialCommunityIcons color="#FFFFFF" name="check" size={18} />
-                    <Text style={styles.actionButtonApproveText}>Approve Request</Text>
-                </Pressable>
+                {!isReadOnlyRequest ? (
+                    <>
+                        <Pressable onPress={() => setPendingDecision('approve')} style={[styles.actionButton, styles.actionButtonApprove]}>
+                            <MaterialCommunityIcons color="#FFFFFF" name="check" size={18} />
+                            <Text style={styles.actionButtonApproveText}>Approve Request</Text>
+                        </Pressable>
 
-                <View style={styles.secondaryActionRow}>
-                    <Pressable onPress={() => setPendingDecision('reject')} style={[styles.actionButton, styles.actionButtonReject]}>
-                        <MaterialCommunityIcons color="#FFFFFF" name="close" size={18} />
-                        <Text style={styles.actionButtonRejectText}>Reject</Text>
-                    </Pressable>
-                </View>
+                        <View style={styles.secondaryActionRow}>
+                            <Pressable onPress={() => setPendingDecision('reject')} style={[styles.actionButton, styles.actionButtonReject]}>
+                                <MaterialCommunityIcons color="#FFFFFF" name="close" size={18} />
+                                <Text style={styles.actionButtonRejectText}>Reject</Text>
+                            </Pressable>
+                        </View>
+                    </>
+                ) : null}
             </View>
 
             <ApprovalConfirmDialog
-                confirmLabel={pendingDecision === 'reject' ? 'Reject Request' : 'Approve Request'}
+                confirmLabel={isSubmittingDecision ? 'Processing...' : pendingDecision === 'reject' ? 'Reject Request' : 'Approve Request'}
                 message={
                     pendingDecision === 'reject'
                         ? 'This request will be marked as rejected. Make sure the employee has the necessary feedback before you continue.'

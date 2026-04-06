@@ -18,6 +18,7 @@ const styles = StyleSheet.create({
     },
     heroMetaRow: {
         flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
         marginTop: 12,
         marginBottom: 16,
@@ -39,8 +40,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         paddingHorizontal: 16,
     },
+    heroButtonDisabled: {
+        opacity: 0.55,
+    },
     heroButtonMuted: {
-        backgroundColor: '#EEF1F5',
+        backgroundColor: '#0A6B63',
         marginRight: 10,
     },
     heroButtonDanger: {
@@ -53,7 +57,7 @@ const styles = StyleSheet.create({
         marginLeft: 6,
     },
     heroButtonTextMuted: {
-        color: '#4A5563',
+        color: '#FFFFFF',
     },
     heroButtonTextDanger: {
         color: '#D33A33',
@@ -96,10 +100,16 @@ const styles = StyleSheet.create({
     managerApprovalBox: {
         marginTop: 16,
         borderWidth: 1,
-        borderColor: '#BBF7D0',
-        backgroundColor: '#F0FDF4',
         borderRadius: 12,
         padding: 14,
+    },
+    managerApprovalBoxApproved: {
+        borderColor: '#BBF7D0',
+        backgroundColor: '#F0FDF4',
+    },
+    managerApprovalBoxRejected: {
+        borderColor: '#FECACA',
+        backgroundColor: '#FEF2F2',
     },
     managerApprovalHeader: {
         flexDirection: 'row',
@@ -107,16 +117,26 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     managerApprovalTitle: {
-        color: '#1B7841',
         fontSize: 14,
         lineHeight: 20,
         fontWeight: '700',
         marginLeft: 8,
     },
+    managerApprovalTitleApproved: {
+        color: '#1B7841',
+    },
+    managerApprovalTitleRejected: {
+        color: '#B42318',
+    },
     managerApprovalNote: {
-        color: '#238147',
         fontSize: 14,
         lineHeight: 22,
+    },
+    managerApprovalNoteApproved: {
+        color: '#238147',
+    },
+    managerApprovalNoteRejected: {
+        color: '#B54708',
     },
     footerActionButton: {
         height: 52,
