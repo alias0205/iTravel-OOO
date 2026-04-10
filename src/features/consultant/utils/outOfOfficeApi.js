@@ -121,6 +121,33 @@ function formatDisplayDate(dateValue, options = {}) {
     });
 }
 
+function formatDisplayTime(dateValue) {
+    const parsedDate = new Date(dateValue);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+        return 'N/A';
+    }
+
+    return parsedDate.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+    });
+}
+
+function formatDisplayDateTime(dateValue, options = {}) {
+    if (!dateValue) {
+        return options.fallback || 'N/A';
+    }
+
+    const parsedDate = new Date(dateValue);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+        return options.fallback || 'N/A';
+    }
+
+    return `${formatDisplayDate(parsedDate, options)}, ${formatDisplayTime(parsedDate)}`;
+}
+
 function formatShortDateRange(startDate, endDate) {
     if (!startDate || !endDate) {
         return 'Date unavailable';
@@ -239,8 +266,8 @@ function getApprovalSummary(statusTone, reviewerName, reviewComment, requestComm
 }
 
 function buildTimeline(record, statusTone, approverName) {
-    const createdAtLabel = formatDisplayDate(record?.created_at, { fallback: 'Recently' });
-    const updatedAtLabel = formatDisplayDate(getReviewTimestamp(record, statusTone), { fallback: 'Recently' });
+    const createdAtLabel = formatDisplayDateTime(record?.created_at, { fallback: 'Recently' });
+    const updatedAtLabel = formatDisplayDateTime(getReviewTimestamp(record, statusTone), { fallback: 'Recently' });
     const timeline = [
         {
             title: 'Request Submitted',
@@ -376,8 +403,8 @@ function normalizeOutOfOfficeRequest(record) {
         title: leaveTypeLabel,
         dateRange: formatDateRange(record?.start_date, record?.end_date),
         dateRangeShort: formatShortDateRange(record?.start_date, record?.end_date),
-        startDate: formatDisplayDate(record?.start_date, { fallback: 'N/A' }),
-        endDate: formatDisplayDate(record?.end_date, { fallback: 'N/A' }),
+        startDate: formatDisplayDateTime(record?.start_date, { fallback: 'N/A' }),
+        endDate: formatDisplayDateTime(record?.end_date, { fallback: 'N/A' }),
         duration: getDurationLabel(record?.start_date, record?.end_date),
         detail: record?.comment || leaveTypeLabel,
         reason: record?.comment || 'No additional comment provided.',

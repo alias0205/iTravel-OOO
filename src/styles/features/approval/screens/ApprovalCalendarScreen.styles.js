@@ -1,9 +1,7 @@
 import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
-    scrollContent: {
-        paddingBottom: 120,
-    },
+    scrollContent: {},
     pagePadding: {
         paddingHorizontal: 16,
         paddingTop: 18,
@@ -20,7 +18,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: 16,
     },
     monthArrowButton: {
         width: 28,
@@ -39,8 +36,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     yearPickerRow: {
-        flexDirection: 'row',
-        marginBottom: 14,
+        marginTop: 10,
+    },
+    yearPickerContent: {
+        paddingRight: 8,
     },
     yearChip: {
         minWidth: 68,
@@ -66,67 +65,28 @@ const styles = StyleSheet.create({
     yearChipTextActive: {
         color: '#0A6B63',
     },
-    toggleRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    toggleButton: {
-        minWidth: 76,
+    optionButton: {
+        minWidth: 86,
         height: 38,
         borderRadius: 10,
         backgroundColor: '#F3F4F6',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 8,
-    },
-    toggleButtonActive: {
-        backgroundColor: '#0A6B63',
-    },
-    toggleButtonText: {
-        color: '#475569',
-        fontSize: 16,
-        lineHeight: 20,
-        fontWeight: '700',
-    },
-    toggleButtonTextActive: {
-        color: '#FFFFFF',
-    },
-    filterButton: {
-        width: 38,
-        height: 38,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 10,
-    },
-    filterButtonActive: {
-        backgroundColor: '#ECFDF5',
-    },
-    filterChipsRow: {
         flexDirection: 'row',
-        flexWrap: 'wrap',
-        marginTop: 14,
-    },
-    filterChip: {
-        borderRadius: 999,
-        borderWidth: 1,
-        borderColor: '#D1D5DB',
-        backgroundColor: '#FFFFFF',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginLeft: 8,
         paddingHorizontal: 12,
-        paddingVertical: 8,
-        marginRight: 8,
-        marginBottom: 8,
     },
-    filterChipActive: {
-        borderColor: '#0A6B63',
+    optionButtonActive: {
         backgroundColor: '#D9F1EA',
     },
-    filterChipText: {
+    optionButtonText: {
         color: '#475569',
-        fontSize: 13,
-        lineHeight: 16,
+        fontSize: 14,
+        lineHeight: 18,
         fontWeight: '700',
+        marginLeft: 6,
     },
-    filterChipTextActive: {
+    optionButtonTextActive: {
         color: '#0A6B63',
     },
     legendCard: {
@@ -144,7 +104,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginRight: 18,
-        marginBottom: 10,
     },
     legendDot: {
         width: 12,
@@ -164,6 +123,162 @@ const styles = StyleSheet.create({
         borderColor: '#E5E7EB',
         overflow: 'hidden',
         marginBottom: 18,
+    },
+    timelineLayout: {
+        flexDirection: 'row',
+        alignItems: 'stretch',
+    },
+    timelineFrozenColumn: {
+        width: 122,
+        backgroundColor: '#FFFFFF',
+        borderRightWidth: 1,
+        borderRightColor: '#E5E7EB',
+        zIndex: 1,
+    },
+    timelineFrozenColumnCompact: {
+        width: 82,
+    },
+    timelineScrollableArea: {
+        flex: 1,
+    },
+    timelineConsultantHeader: {
+        width: 132,
+        height: 52,
+        paddingHorizontal: 8,
+        paddingVertical: 12,
+        justifyContent: 'center',
+        backgroundColor: '#F8FAFC',
+        borderRightWidth: 1,
+        borderRightColor: '#E5E7EB',
+        borderBottomWidth: 1,
+        borderBottomColor: '#E5E7EB',
+    },
+    timelineConsultantHeaderCompact: {
+        width: 82,
+    },
+    timelineConsultantHeaderText: {
+        color: '#1F2937',
+        fontSize: 12,
+        lineHeight: 16,
+        fontWeight: '800',
+    },
+    timelineDaysWrap: {
+        flexDirection: 'row',
+        backgroundColor: '#F8FAFC',
+        borderBottomWidth: 1,
+        borderBottomColor: '#E5E7EB',
+        borderLeftWidth: 1,
+        borderLeftColor: '#E5E7EB',
+    },
+    timelineDayHeaderCell: {
+        width: 56,
+        height: 52,
+        paddingVertical: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRightWidth: 1,
+        borderRightColor: '#E5E7EB',
+    },
+    timelineDayHeaderTop: {
+        color: '#64748B',
+        fontSize: 11,
+        lineHeight: 14,
+        fontWeight: '700',
+        marginBottom: 4,
+    },
+    timelineDayHeaderBottom: {
+        color: '#111827',
+        fontSize: 14,
+        lineHeight: 18,
+        fontWeight: '800',
+    },
+    timelineRow: {
+        height: 58,
+        borderBottomWidth: 1,
+        borderBottomColor: '#E5E7EB',
+    },
+    timelineConsultantCell: {
+        width: 132,
+        height: 58,
+        paddingHorizontal: 8,
+        paddingVertical: 10,
+        justifyContent: 'center',
+        backgroundColor: '#FFFFFF',
+        borderRightWidth: 1,
+        borderRightColor: '#E5E7EB',
+        borderBottomWidth: 1,
+        borderBottomColor: '#E5E7EB',
+    },
+    timelineConsultantCellCompact: {
+        width: 82,
+        alignItems: 'center',
+    },
+    timelineConsultantFullName: {
+        color: '#1F2937',
+        fontSize: 12,
+        lineHeight: 16,
+        fontWeight: '700',
+    },
+    timelineConsultantShortName: {
+        color: '#1F2937',
+        fontSize: 14,
+        lineHeight: 18,
+        fontWeight: '700',
+    },
+    timelineTrack: {
+        flexDirection: 'row',
+        position: 'relative',
+        height: 58,
+        backgroundColor: '#FFFFFF',
+        borderLeftWidth: 1,
+        borderLeftColor: '#E5E7EB',
+    },
+    timelineGridCell: {
+        width: 56,
+        borderRightWidth: 1,
+        borderRightColor: '#E5E7EB',
+        height: 58,
+        borderBottomWidth: 1,
+        borderBottomColor: '#E5E7EB',
+    },
+    timelineGridOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        flexDirection: 'row',
+    },
+    timelineGridOverlayCell: {
+        width: 56,
+        borderRightWidth: 1,
+        borderRightColor: '#E5E7EB',
+    },
+    timelineBarWrap: {
+        position: 'absolute',
+        top: 8,
+        height: 28,
+        paddingHorizontal: 1,
+    },
+    timelineBar: {
+        flex: 1,
+        borderRadius: 0,
+        justifyContent: 'center',
+        paddingHorizontal: 6,
+    },
+    timelineBarApproved: {
+        backgroundColor: '#22C55E',
+    },
+    timelineBarPending: {
+        backgroundColor: '#FB923C',
+    },
+    timelineBarText: {
+        fontSize: 11,
+        lineHeight: 14,
+    },
+    timelineBarTextPending: {
+        color: '#5B2500',
+        fontWeight: '700',
+    },
+    timelineBarTextDefault: {
+        color: '#0F172A',
+        fontWeight: '700',
     },
     weekdayHeaderRow: {
         flexDirection: 'row',
@@ -224,13 +339,7 @@ const styles = StyleSheet.create({
         alignSelf: 'flex-start',
         maxWidth: '100%',
     },
-    eventPillSelf: {
-        backgroundColor: '#0A6B63',
-    },
-    eventPillSelfSecondary: {
-        backgroundColor: '#DCE8FA',
-    },
-    eventPillTeam: {
+    eventPillApproved: {
         backgroundColor: '#DCE8FA',
     },
     eventPillPending: {
@@ -240,11 +349,7 @@ const styles = StyleSheet.create({
         fontSize: 11,
         lineHeight: 14,
     },
-    eventPillTextSelf: {
-        color: '#FFFFFF',
-        fontWeight: '700',
-    },
-    eventPillTextTeam: {
+    eventPillTextApproved: {
         color: '#2563EB',
     },
     eventPillTextPending: {
@@ -298,9 +403,6 @@ const styles = StyleSheet.create({
     upcomingAvatarWrapHoliday: {
         backgroundColor: '#F3E8FF',
     },
-    upcomingAvatarWrapSelf: {
-        backgroundColor: '#0A6B63',
-    },
     upcomingCopy: {
         flex: 1,
     },
@@ -325,9 +427,6 @@ const styles = StyleSheet.create({
     },
     upcomingStatusDotHoliday: {
         backgroundColor: '#9333EA',
-    },
-    upcomingStatusDotSelf: {
-        backgroundColor: '#0A6B63',
     },
     emptyState: {
         color: '#6B7280',

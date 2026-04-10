@@ -169,7 +169,18 @@ function buildActionError(payload, fallbackMessage, status) {
     return error;
 }
 
-function normalizeApprovalRequest(record) {
+function resolveServerNow(payload, response) {
+    const payloadServerTime =
+        payload?.server_time || payload?.serverTime || payload?.meta?.server_time || payload?.meta?.serverTime || payload?.current_time || payload?.currentTime;
+
+    if (payloadServerTime) {
+        return payloadServerTime;
+    }
+
+    return response?.headers?.get('date') || '';
+}
+
+function normalizeApprovalRequest(record, options = {}) {
     const person = getPerson(record);
     const reason = record?.out_of_office_reason || record?.reason || {};
     const fullName = person?.name || [person?.first_name, person?.last_name].filter(Boolean).join(' ').trim() || 'Unknown Employee';
@@ -195,6 +206,7 @@ function normalizeApprovalRequest(record) {
         duration: getDurationLabel(record?.start_date, record?.end_date),
         durationLabel: getDurationLabel(record?.start_date, record?.end_date),
         submittedAt: formatDisplayDate(record?.created_at, { month: 'short', fallback: 'Recently submitted' }),
+        serverNow: options.serverNow || '',
         reason: record?.comment || 'No additional comment provided.',
         reviewComment: record?.review?.comment || 'No additional comment provided.',
         reviewedAt: record?.review?.reviewed_at || null,
@@ -222,6 +234,7 @@ async function fetchPaginatedApprovalCollection({ endpoint, page = 1, perPage = 
     const {
         ok,
         payload,
+        response,
         status: responseStatus,
     } = await apiRequest(`${endpoint}?${query.toString()}`, {
         method: 'GET',
@@ -237,9 +250,10 @@ async function fetchPaginatedApprovalCollection({ endpoint, page = 1, perPage = 
     }
 
     const meta = getPaginationMeta(payload);
+    const serverNow = resolveServerNow(payload, response);
 
     return {
-        items: getRecordsCollection(payload).map(normalizeApprovalRequest),
+        items: getRecordsCollection(payload).map((record) => normalizeApprovalRequest(record, { serverNow })),
         meta: {
             currentPage: Number(meta?.current_page || 1),
             lastPage: Number(meta?.last_page || 1),
@@ -250,7 +264,7 @@ async function fetchPaginatedApprovalCollection({ endpoint, page = 1, perPage = 
 }
 
 export async function approveOutOfOfficeRequest({ holidayId, reviewComment = '', token }) {
-    const { ok, payload, status } = await apiRequest(`${OUT_OF_OFFICE_ENDPOINT}/${holidayId}/approve`, {
+    const { ok, payload, response, status } = await apiRequest(`${OUT_OF_OFFICE_ENDPOINT}/${holidayId}/approve`, {
         method: 'POST',
         requiresAuth: true,
         token,
@@ -263,11 +277,11 @@ export async function approveOutOfOfficeRequest({ holidayId, reviewComment = '',
 
     const record = payload?.data || payload?.record || payload;
 
-    return normalizeApprovalRequest(record);
+    return normalizeApprovalRequest(record, { serverNow: resolveServerNow(payload, response) });
 }
 
 export async function rejectOutOfOfficeRequest({ holidayId, reviewComment = '', token }) {
-    const { ok, payload, status } = await apiRequest(`${OUT_OF_OFFICE_ENDPOINT}/${holidayId}/reject`, {
+    const { ok, payload, response, status } = await apiRequest(`${OUT_OF_OFFICE_ENDPOINT}/${holidayId}/reject`, {
         method: 'POST',
         requiresAuth: true,
         token,
@@ -280,7 +294,7 @@ export async function rejectOutOfOfficeRequest({ holidayId, reviewComment = '', 
 
     const record = payload?.data || payload?.record || payload;
 
-    return normalizeApprovalRequest(record);
+    return normalizeApprovalRequest(record, { serverNow: resolveServerNow(payload, response) });
 }
 
 export async function fetchApprovalRequests({ page = 1, perPage = 15, status, token }) {

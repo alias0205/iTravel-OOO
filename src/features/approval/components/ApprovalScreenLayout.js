@@ -31,7 +31,11 @@ function ApprovalPageHeader({ title, subtitle, rightContent, showBackButton, onB
                     ) : null}
 
                     <View style={styles.headerCopy}>
-                        {title ? <Text style={styles.headerTitle}>{title}</Text> : null}
+                        {title ? (
+                            <Text numberOfLines={1} style={styles.headerTitle}>
+                                {title}
+                            </Text>
+                        ) : null}
                         {subtitle ? <Text style={styles.headerSubtitle}>{subtitle}</Text> : null}
                     </View>
                 </View>

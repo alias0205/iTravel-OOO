@@ -24,7 +24,7 @@ const defaultRequest = {
     dateRange: 'Dec 20 - Dec 27, 2024',
     duration: '8 days',
     durationLabel: '8 business days',
-    submittedAt: 'Dec 15, 2024 at 2:30 PM',
+    submittedAt: 'Dec 15, 2024, 2:30 PM',
     reason: 'Family vacation to celebrate holidays. Planning to visit parents and extended family during Christmas week.',
     daysAvailable: '15',
     daysRequested: '8',
@@ -49,6 +49,25 @@ function buildAvatarLabel(fullName) {
     return `${parts[0]?.[0] || ''}${parts[1]?.[0] || ''}`.toUpperCase() || 'RV';
 }
 
+function formatDatePart(dateValue) {
+    return dateValue.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+    });
+}
+
+function formatTimePart(dateValue) {
+    return dateValue.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+    });
+}
+
+function formatDateTimeValue(dateValue) {
+    return `${formatDatePart(dateValue)}, ${formatTimePart(dateValue)}`;
+}
+
 function formatReviewedAt(dateValue) {
     if (!dateValue) {
         return 'Review date unavailable';
@@ -60,13 +79,54 @@ function formatReviewedAt(dateValue) {
         return 'Review date unavailable';
     }
 
-    return parsedDate.toLocaleString('en-US', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-    });
+    return formatDateTimeValue(parsedDate);
+}
+
+function normalizeTimestampText(value, fallbackValue) {
+    const source = typeof value === 'string' && value.trim() ? value : fallbackValue;
+
+    if (typeof source !== 'string') {
+        return fallbackValue;
+    }
+
+    return source.replace(/\s+at\s+/i, ', ');
+}
+
+function formatSubmittedAt(dateValue, fallbackValue = 'Submission date unavailable') {
+    if (!dateValue) {
+        return normalizeTimestampText(fallbackValue, 'Submission date unavailable');
+    }
+
+    const parsedDate = new Date(dateValue);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+        return normalizeTimestampText(fallbackValue, 'Submission date unavailable');
+    }
+
+    return formatDateTimeValue(parsedDate);
+}
+
+function formatRequestDates(startDateValue, endDateValue, fallbackValue = 'Date unavailable') {
+    if (!startDateValue || !endDateValue) {
+        return normalizeTimestampText(fallbackValue, 'Date unavailable');
+    }
+
+    const startDate = new Date(startDateValue);
+    const endDate = new Date(endDateValue);
+
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+        return normalizeTimestampText(fallbackValue, 'Date unavailable');
+    }
+
+    const sameDay = startDate.getFullYear() === endDate.getFullYear() && startDate.getMonth() === endDate.getMonth() && startDate.getDate() === endDate.getDate();
+
+    if (sameDay) {
+        const dayLabel = formatDatePart(startDate);
+
+        return `${dayLabel}, ${formatTimePart(startDate)} - ${formatTimePart(endDate)}`;
+    }
+
+    return `${formatDateTimeValue(startDate)} - ${formatDateTimeValue(endDate)}`;
 }
 
 function SectionCard({ icon, title, children }) {
@@ -130,6 +190,8 @@ export function ApprovalRequestReviewScreen({ navigation, route }) {
     const reviewerSummaryIconColor = request.statusTone === 'approved' ? '#1B7841' : '#B42318';
     const reviewerSummaryIcon = request.statusTone === 'approved' ? 'check-circle' : 'close-circle';
     const reviewerSummaryNote = request.reviewComment || request.reason || 'No review comment provided.';
+    const submittedAtLabel = formatSubmittedAt(request?.raw?.created_at || request?.submittedAt, request?.submittedAt);
+    const requestDatesLabel = formatRequestDates(request?.raw?.start_date || request?.startDate, request?.raw?.end_date || request?.endDate, request?.dateRange);
 
     const handleApprovalDecision = () => {
         void (async () => {
@@ -256,10 +318,10 @@ export function ApprovalRequestReviewScreen({ navigation, route }) {
                                 </View>
                             }
                         />
-                        <SummaryRow label="Dates" value={request.dateRange} />
+                        <SummaryRow label="Dates" value={requestDatesLabel} />
                         <SummaryRow label="Duration" value={durationBreakdown?.label ?? request.durationLabel ?? request.duration} />
                         <SummaryRow label="Status" trailingTag={<StatusBadge label={request.statusLabel} tone={request.statusTone} />} />
-                        <SummaryRow label="Submitted" value={request.submittedAt} />
+                        <SummaryRow label="Submitted" value={submittedAtLabel} />
 
                         <View style={styles.sectionDivider} />
 

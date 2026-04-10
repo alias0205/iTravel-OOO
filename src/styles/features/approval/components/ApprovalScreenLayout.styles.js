@@ -22,6 +22,7 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
+        minWidth: 0,
         paddingRight: 12,
     },
     backButton: {
@@ -35,12 +36,14 @@ const styles = StyleSheet.create({
     },
     headerCopy: {
         flex: 1,
+        minWidth: 0,
     },
     headerTitle: {
         color: '#1F2937',
         fontSize: 18,
         lineHeight: 24,
         fontWeight: '800',
+        flexShrink: 1,
     },
     headerSubtitle: {
         color: '#5B6575',
@@ -50,6 +53,7 @@ const styles = StyleSheet.create({
     },
     headerRight: {
         marginLeft: 12,
+        flexShrink: 0,
     },
     scrollContent: {
         paddingBottom: 18,

@@ -47,6 +47,7 @@ export function ApprovalDashboardScreen({ navigation }) {
                             leaveToneKey={request.leaveToneKey}
                             name={request.name}
                             role={request.role}
+                            submittedAt={request.submittedAt}
                             statusLabel={request.statusLabel}
                             statusTone={request.statusTone}
                             onApprovePress={() => setPendingApprovalRequest(request)}

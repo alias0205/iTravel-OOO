@@ -11,22 +11,47 @@ import { PersonSummaryRow } from '../../../shared/components/dashboard/PersonSum
 import { StatusBadge } from '../../../shared/components/dashboard/StatusBadge';
 import { TimelineItem } from '../../../shared/components/dashboard/TimelineItem';
 
-function formatTimelineTimestamp(dateValue, fallbackValue = 'Recently') {
-    if (!dateValue) {
+function normalizeTimestampText(value, fallbackValue = 'N/A') {
+    const source = typeof value === 'string' && value.trim() ? value : fallbackValue;
+
+    if (typeof source !== 'string') {
         return fallbackValue;
+    }
+
+    return source.replace(/\s+at\s+/gi, ', ');
+}
+
+function formatDatePart(dateValue) {
+    return dateValue.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+    });
+}
+
+function formatTimePart(dateValue) {
+    return dateValue.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+    });
+}
+
+function formatDateTimeValue(dateValue, fallbackValue = 'N/A') {
+    if (!dateValue) {
+        return normalizeTimestampText(fallbackValue, 'N/A');
     }
 
     const parsedDate = new Date(dateValue);
 
     if (Number.isNaN(parsedDate.getTime())) {
-        return fallbackValue;
+        return normalizeTimestampText(fallbackValue, 'N/A');
     }
 
-    return parsedDate.toLocaleDateString('en-US', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-    });
+    return `${formatDatePart(parsedDate)}, ${formatTimePart(parsedDate)}`;
+}
+
+function formatTimelineTimestamp(dateValue, fallbackValue = 'Recently') {
+    return formatDateTimeValue(dateValue, fallbackValue);
 }
 
 function buildFallbackTimeline(request) {
@@ -80,7 +105,12 @@ export function ConsultantRequestDetailScreen({ navigation, route }) {
     const canEditRequest = request.canEdit ?? request.statusTone === 'pending';
     const durationBreakdown = getApprovalDurationBreakdown(request);
     const durationLabel = durationBreakdown?.label ?? request.duration;
-    const timelineItems = Array.isArray(request.timeline) && request.timeline.length > 0 ? request.timeline : buildFallbackTimeline(request);
+    const timelineItems = (Array.isArray(request.timeline) && request.timeline.length > 0 ? request.timeline : buildFallbackTimeline(request)).map((item) => ({
+        ...item,
+        timestamp: normalizeTimestampText(item.timestamp, 'Recently'),
+    }));
+    const startDateLabel = formatDateTimeValue(request?.raw?.start_date || request?.startDate, request?.startDate || 'N/A');
+    const endDateLabel = formatDateTimeValue(request?.raw?.end_date || request?.endDate, request?.endDate || 'N/A');
     const reviewerBoxStyles = [
         styles.managerApprovalBox,
         request.statusTone === 'approved' ? styles.managerApprovalBoxApproved : null,
@@ -149,11 +179,11 @@ export function ConsultantRequestDetailScreen({ navigation, route }) {
 
                     <View style={styles.twoColumnRow}>
                         <View style={styles.column}>
-                            <InfoField label="Start Date" value={request.startDate} />
+                            <InfoField label="Start Date" value={startDateLabel} />
                         </View>
                         <View style={styles.columnSpacer} />
                         <View style={styles.column}>
-                            <InfoField label="End Date" value={request.endDate} />
+                            <InfoField label="End Date" value={endDateLabel} />
                         </View>
                     </View>
 

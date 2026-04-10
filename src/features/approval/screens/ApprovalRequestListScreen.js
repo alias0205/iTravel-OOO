@@ -222,6 +222,8 @@ export function ApprovalRequestListScreen({ navigation, route }) {
                                   leaveLabel={request.leaveLabel}
                                   leaveToneKey={request.leaveToneKey}
                                   name={request.name}
+                                  serverNow={request.serverNow}
+                                  submittedAt={request.raw?.created_at || request.submittedAt}
                                   onPress={() => navigation.navigate('ApprovalRequestReview', { request })}
                                   reviewerLabel={getReviewerLabel(request)}
                                   role={request.role}

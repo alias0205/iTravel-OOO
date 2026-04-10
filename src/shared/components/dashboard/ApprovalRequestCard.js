@@ -12,6 +12,60 @@ const leaveTone = {
     remote: { backgroundColor: '#E3F4E7', color: '#2A8C46', icon: LEAVE_TYPE_ICON },
 };
 
+function formatRelativeSubmittedTime(submittedAtValue, referenceTimeValue) {
+    if (!submittedAtValue) {
+        return '';
+    }
+
+    const parsedDate = new Date(submittedAtValue);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+        return submittedAtValue;
+    }
+
+    const referenceDate = referenceTimeValue ? new Date(referenceTimeValue) : null;
+    const referenceTime = referenceDate && !Number.isNaN(referenceDate.getTime()) ? referenceDate.getTime() : Date.now();
+    const diffMs = referenceTime - parsedDate.getTime();
+    const safeDiffMs = diffMs < 0 ? 0 : diffMs;
+    const minuteMs = 60 * 1000;
+    const hourMs = 60 * minuteMs;
+    const dayMs = 24 * hourMs;
+
+    if (safeDiffMs < minuteMs) {
+        return 'Just now';
+    }
+
+    if (safeDiffMs < hourMs) {
+        const minutes = Math.floor(safeDiffMs / minuteMs);
+        return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`;
+    }
+
+    if (safeDiffMs < dayMs) {
+        const hours = Math.floor(safeDiffMs / hourMs);
+        return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
+    }
+
+    if (safeDiffMs < 7 * dayMs) {
+        const days = Math.floor(safeDiffMs / dayMs);
+        return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+    }
+
+    const weeks = Math.floor(safeDiffMs / (7 * dayMs));
+
+    if (weeks < 5) {
+        return `${weeks} ${weeks === 1 ? 'week' : 'weeks'} ago`;
+    }
+
+    const months = Math.floor(safeDiffMs / (30 * dayMs));
+
+    if (months < 12) {
+        return `${months} ${months === 1 ? 'month' : 'months'} ago`;
+    }
+
+    const years = Math.floor(safeDiffMs / (365 * dayMs));
+    return `${years} ${years === 1 ? 'year' : 'years'} ago`;
+}
+
 export function ApprovalRequestCard({
     name,
     role,
@@ -19,6 +73,8 @@ export function ApprovalRequestCard({
     leaveToneKey = 'annual',
     dateRange,
     duration,
+    submittedAt,
+    serverNow,
     avatarLabel,
     avatarSource,
     reviewerLabel,
@@ -30,6 +86,7 @@ export function ApprovalRequestCard({
 }) {
     const tone = leaveTone[leaveToneKey] ?? leaveTone.annual;
     const isClosedRequest = statusTone === 'approved' || statusTone === 'rejected';
+    const submittedLabel = formatRelativeSubmittedTime(submittedAt, serverNow);
 
     return (
         <Pressable disabled={!isClosedRequest} onPress={onPress} style={styles.card}>
@@ -76,6 +133,16 @@ export function ApprovalRequestCard({
                     <Pressable onPress={onReviewPress} style={[styles.button, styles.buttonSolid]}>
                         <Text style={[styles.buttonText, styles.buttonTextSolid]}>Review</Text>
                     </Pressable>
+                </View>
+            ) : null}
+
+            {submittedLabel ? (
+                <View style={styles.submittedFooter}>
+                    <View style={styles.submittedDivider} />
+                    <View style={styles.submittedRow}>
+                        <MaterialCommunityIcons color="#969EAB" name="clock-outline" size={15} />
+                        <Text style={styles.submittedText}>Submitted {submittedLabel}</Text>
+                    </View>
                 </View>
             ) : null}
         </Pressable>

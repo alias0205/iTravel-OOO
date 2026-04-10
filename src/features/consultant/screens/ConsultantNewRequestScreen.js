@@ -17,16 +17,27 @@ function normalizeDate(dateValue) {
     return new Date(dateValue.getFullYear(), dateValue.getMonth(), dateValue.getDate());
 }
 
+function mergeDatePart(baseDate, nextDate) {
+    return new Date(nextDate.getFullYear(), nextDate.getMonth(), nextDate.getDate(), baseDate.getHours(), baseDate.getMinutes(), 0, 0);
+}
+
+function mergeTimePart(baseDate, nextDate) {
+    return new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), nextDate.getHours(), nextDate.getMinutes(), 0, 0);
+}
+
 function formatDate(dateValue) {
     if (!dateValue) {
-        return 'mm/dd/yyyy';
+        return 'mm/dd/yyyy hh:mm';
     }
 
-    const month = `${dateValue.getMonth() + 1}`.padStart(2, '0');
-    const day = `${dateValue.getDate()}`.padStart(2, '0');
-    const year = dateValue.getFullYear();
-
-    return `${month}/${day}/${year}`;
+    return dateValue.toLocaleString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+    });
 }
 
 function formatLongDate(dateValue) {
@@ -34,10 +45,12 @@ function formatLongDate(dateValue) {
         return 'N/A';
     }
 
-    return dateValue.toLocaleDateString('en-US', {
+    return dateValue.toLocaleString('en-US', {
         month: 'long',
         day: 'numeric',
         year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
     });
 }
 
@@ -46,16 +59,36 @@ function formatDateRangeLabel(startDate, endDate) {
         return 'Date unavailable';
     }
 
-    const sameYear = startDate.getFullYear() === endDate.getFullYear();
-    const sameMonth = sameYear && startDate.getMonth() === endDate.getMonth();
-    const startMonth = startDate.toLocaleDateString('en-US', { month: 'short' });
-    const endMonth = endDate.toLocaleDateString('en-US', { month: 'short' });
+    const sameDay = startDate.getFullYear() === endDate.getFullYear() && startDate.getMonth() === endDate.getMonth() && startDate.getDate() === endDate.getDate();
+    const startLabel = startDate.toLocaleString('en-US', {
+        month: 'short',
+        day: '2-digit',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+    });
+    const endLabel = endDate.toLocaleString('en-US', {
+        month: sameDay ? undefined : 'short',
+        day: sameDay ? undefined : '2-digit',
+        year: sameDay ? undefined : 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+    });
 
-    if (sameMonth) {
-        return `${startMonth} ${String(startDate.getDate()).padStart(2, '0')} - ${String(endDate.getDate()).padStart(2, '0')}, ${endDate.getFullYear()}`;
+    if (sameDay) {
+        const dayLabel = startDate.toLocaleDateString('en-US', {
+            month: 'short',
+            day: '2-digit',
+            year: 'numeric',
+        });
+
+        return `${dayLabel}, ${startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} - ${endDate.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+        })}`;
     }
 
-    return `${startMonth} ${String(startDate.getDate()).padStart(2, '0')} - ${endMonth} ${String(endDate.getDate()).padStart(2, '0')}, ${endDate.getFullYear()}`;
+    return `${startLabel} - ${endLabel}`;
 }
 
 function getRequestedDays(startDate, endDate) {
@@ -92,8 +125,10 @@ function formatApiDate(dateValue) {
     const month = `${dateValue.getMonth() + 1}`.padStart(2, '0');
     const day = `${dateValue.getDate()}`.padStart(2, '0');
     const year = dateValue.getFullYear();
+    const hours = `${dateValue.getHours()}`.padStart(2, '0');
+    const minutes = `${dateValue.getMinutes()}`.padStart(2, '0');
 
-    return `${year}-${month}-${day}`;
+    return `${year}-${month}-${day} ${hours}:${minutes}:00`;
 }
 
 function buildUpdatedRequest(request, { durationLabel, endDate, leaveType, reason, requestedDays, startDate }) {
@@ -169,7 +204,7 @@ export function ConsultantNewRequestScreen({ navigation, route }) {
     const [leaveTypesReloadKey, setLeaveTypesReloadKey] = useState(0);
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
-    const [activePickerField, setActivePickerField] = useState(null);
+    const [activePicker, setActivePicker] = useState(null);
     const [reason, setReason] = useState('');
     const [submitAttempted, setSubmitAttempted] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -183,8 +218,10 @@ export function ConsultantNewRequestScreen({ navigation, route }) {
 
         const requestStartDate = requestToEdit?.raw?.start_date || requestToEdit?.start_date;
         const requestEndDate = requestToEdit?.raw?.end_date || requestToEdit?.end_date;
-        const normalizedStartDate = requestStartDate ? normalizeDate(new Date(requestStartDate)) : null;
-        const normalizedEndDate = requestEndDate ? normalizeDate(new Date(requestEndDate)) : null;
+        const parsedStartDate = requestStartDate ? new Date(requestStartDate) : null;
+        const parsedEndDate = requestEndDate ? new Date(requestEndDate) : null;
+        const normalizedStartDate = parsedStartDate && !Number.isNaN(parsedStartDate.getTime()) ? parsedStartDate : null;
+        const normalizedEndDate = parsedEndDate && !Number.isNaN(parsedEndDate.getTime()) ? parsedEndDate : null;
 
         setStartDate(normalizedStartDate);
         setEndDate(normalizedEndDate);
@@ -283,34 +320,67 @@ export function ConsultantNewRequestScreen({ navigation, route }) {
         };
     }, [durationBreakdown, requestedDays, selectedLeaveType]);
 
+    const activePickerField = activePicker?.field || null;
+    const pickerMode = Platform.OS === 'ios' ? 'datetime' : activePicker?.mode || 'date';
+
     const visibleErrors = {
         leaveType: submitAttempted && !selectedLeaveType?.value ? 'Please select a leave type' : leaveTypesError,
-        startDate: submitAttempted && !startDate ? 'Please choose a start date' : submitAttempted && hasPastStartDateError ? 'Start date must be today or later' : '',
-        endDate: submitAttempted && !endDate ? 'Please choose an end date' : submitAttempted && hasDateOrderError ? 'End date must be on or after the start date' : '',
+        startDate: submitAttempted && !startDate ? 'Please choose a start date and time' : submitAttempted && hasPastStartDateError ? 'Start date must be today or later' : '',
+        endDate: submitAttempted && !endDate ? 'Please choose an end date and time' : submitAttempted && hasDateOrderError ? 'End date must be on or after the start date' : '',
     };
 
     const pickerValue = activePickerField === 'end' ? (endDate ?? startDate ?? new Date()) : (startDate ?? new Date());
 
-    const handleDateChange = (_event, selectedDate) => {
-        if (Platform.OS === 'android') {
-            setActivePickerField(null);
-        }
-
-        if (!selectedDate || !activePickerField) {
-            return;
-        }
-
-        const normalizedSelectedDate = normalizeDate(selectedDate);
-
-        if (activePickerField === 'start') {
-            setStartDate(normalizedSelectedDate);
-            if (endDate && normalizeDate(endDate) < normalizedSelectedDate) {
-                setEndDate(normalizedSelectedDate);
+    const applyFieldValue = (fieldName, nextValue) => {
+        if (fieldName === 'start') {
+            setStartDate(nextValue);
+            if (endDate && endDate < nextValue) {
+                setEndDate(nextValue);
             }
             return;
         }
 
-        setEndDate(normalizedSelectedDate);
+        setEndDate(nextValue);
+    };
+
+    const handleDateChange = (event, selectedDate) => {
+        if (!activePickerField) {
+            return;
+        }
+
+        if (Platform.OS === 'android' && event?.type === 'dismissed') {
+            setActivePicker(null);
+            return;
+        }
+
+        if (!selectedDate) {
+            return;
+        }
+
+        if (Platform.OS === 'ios') {
+            applyFieldValue(activePickerField, selectedDate);
+            return;
+        }
+
+        if (pickerMode === 'date') {
+            const nextValue = mergeDatePart(pickerValue, selectedDate);
+            applyFieldValue(activePickerField, nextValue);
+            setActivePicker({ field: activePickerField, mode: 'time' });
+            return;
+        }
+
+        const nextValue = mergeTimePart(pickerValue, selectedDate);
+        applyFieldValue(activePickerField, nextValue);
+        setActivePicker(null);
+    };
+
+    const handlePickerToggle = (fieldName) => {
+        if (Platform.OS === 'ios') {
+            setActivePicker((currentValue) => (currentValue?.field === fieldName ? null : { field: fieldName, mode: 'datetime' }));
+            return;
+        }
+
+        setActivePicker((currentValue) => (currentValue?.field === fieldName ? null : { field: fieldName, mode: 'date' }));
     };
 
     const renderPicker = (fieldName) => {
@@ -321,14 +391,14 @@ export function ConsultantNewRequestScreen({ navigation, route }) {
         return (
             <View style={styles.pickerWrap}>
                 <DateTimePicker
-                    display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                    minimumDate={fieldName === 'end' && startDate ? startDate : undefined}
-                    mode="date"
+                    display={Platform.OS === 'ios' ? 'default' : 'default'}
+                    minimumDate={Platform.OS === 'android' && pickerMode !== 'date' ? undefined : fieldName === 'end' && startDate ? startDate : undefined}
+                    mode={pickerMode}
                     onChange={handleDateChange}
                     value={pickerValue}
                 />
                 {Platform.OS === 'ios' ? (
-                    <Pressable onPress={() => setActivePickerField(null)} style={styles.pickerDoneButton}>
+                    <Pressable onPress={() => setActivePicker(null)} style={styles.pickerDoneButton}>
                         <Text style={styles.pickerDoneText}>Done</Text>
                     </Pressable>
                 ) : null}
@@ -527,24 +597,24 @@ export function ConsultantNewRequestScreen({ navigation, route }) {
                             ) : null}
                         </View>
 
-                        <FieldLabel>Start Date *</FieldLabel>
+                        <FieldLabel>Start Date & Time *</FieldLabel>
                         <Pressable
-                            onPress={() => setActivePickerField((currentValue) => (currentValue === 'start' ? null : 'start'))}
+                            onPress={() => handlePickerToggle('start')}
                             style={[styles.inputShell, activePickerField === 'start' ? styles.inputShellActive : null, visibleErrors.startDate ? styles.inputShellError : null]}
                         >
                             <Text style={startDate ? styles.inputValue : styles.inputPlaceholder}>{formatDate(startDate)}</Text>
-                            <MaterialCommunityIcons color="#8B8B8B" name="calendar-month-outline" size={20} />
+                            <MaterialCommunityIcons color="#8B8B8B" name="calendar-clock-outline" size={20} />
                         </Pressable>
                         {visibleErrors.startDate ? <Text style={styles.errorText}>{visibleErrors.startDate}</Text> : null}
                         {renderPicker('start')}
 
-                        <FieldLabel>End Date *</FieldLabel>
+                        <FieldLabel>End Date & Time *</FieldLabel>
                         <Pressable
-                            onPress={() => setActivePickerField((currentValue) => (currentValue === 'end' ? null : 'end'))}
+                            onPress={() => handlePickerToggle('end')}
                             style={[styles.inputShell, activePickerField === 'end' ? styles.inputShellActive : null, visibleErrors.endDate ? styles.inputShellError : null]}
                         >
                             <Text style={endDate ? styles.inputValue : styles.inputPlaceholder}>{formatDate(endDate)}</Text>
-                            <MaterialCommunityIcons color="#8B8B8B" name="calendar-month-outline" size={20} />
+                            <MaterialCommunityIcons color="#8B8B8B" name="calendar-clock-outline" size={20} />
                         </Pressable>
                         {visibleErrors.endDate ? <Text style={styles.errorText}>{visibleErrors.endDate}</Text> : null}
                         {renderPicker('end')}

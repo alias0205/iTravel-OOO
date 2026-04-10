@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     dateRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 14,
+        marginBottom: 0,
     },
     dateRowClosed: {
         marginBottom: 0,
@@ -99,8 +99,28 @@ const styles = StyleSheet.create({
         color: '#A2A9B5',
         marginHorizontal: 8,
     },
+    submittedFooter: {
+        marginTop: 14,
+    },
+    submittedDivider: {
+        height: 1,
+        backgroundColor: '#E9EDF3',
+        marginBottom: 12,
+    },
+    submittedRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+    },
+    submittedText: {
+        color: '#6F7787',
+        fontSize: 13,
+        lineHeight: 18,
+        marginLeft: 6,
+    },
     actionRow: {
         flexDirection: 'row',
+        marginTop: 12,
     },
     button: {
         flex: 1,
