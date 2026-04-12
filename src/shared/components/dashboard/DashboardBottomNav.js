@@ -6,7 +6,7 @@ import { DashboardBottomNavStyles as styles } from '../../../styles';
 const defaultItems = [
     { key: 'home', label: 'Home', icon: 'home' },
     { key: 'calendar', label: 'Calendar', icon: 'calendar-month-outline' },
-    { key: 'approvals', label: 'Approvals', icon: 'clipboard-check-outline', badge: 1 },
+    { key: 'approvals', label: 'Requests', icon: 'clipboard-check-outline', badge: 1 },
     { key: 'settings', label: 'Settings', icon: 'cog-outline' },
 ];
 

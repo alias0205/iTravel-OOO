@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { memo, useCallback, useMemo, useState } from 'react';
+import { FlatList, Pressable, Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { ApprovalScreenLayout } from '../components/ApprovalScreenLayout';
@@ -7,8 +7,7 @@ import { ApprovalNotificationsScreenStyles as styles } from '../../../styles';
 
 const notificationTabs = [
     { key: 'all', label: 'All' },
-    { key: 'approvals', label: 'Approvals' },
-    { key: 'requests', label: 'Requests' },
+    { key: 'unread', label: 'Unread' },
 ];
 
 const approvalNotifications = [
@@ -250,7 +249,19 @@ const approvalNotifications = [
     },
 ];
 
-function ApprovalNotificationCard({ item, onActionPress }) {
+const notificationsByTab = {
+    all: approvalNotifications,
+    unread: approvalNotifications.filter((item) => item.unread),
+};
+
+const tabCounts = {
+    all: notificationsByTab.all.length,
+    unread: notificationsByTab.unread.length,
+};
+
+const unreadCount = approvalNotifications.reduce((count, item) => count + (item.unread ? 1 : 0), 0);
+
+const ApprovalNotificationCard = memo(function ApprovalNotificationCard({ item, onActionPress }) {
     return (
         <View style={[styles.notificationCard, { borderLeftColor: item.accent }]}>
             <View style={styles.notificationRow}>
@@ -274,29 +285,29 @@ function ApprovalNotificationCard({ item, onActionPress }) {
             </View>
         </View>
     );
-}
+});
 
 export function ApprovalNotificationsScreen({ navigation }) {
     const [activeTab, setActiveTab] = useState('all');
+    const filteredNotifications = useMemo(() => notificationsByTab[activeTab] || notificationsByTab.all, [activeTab]);
 
-    const unreadCount = useMemo(() => approvalNotifications.filter((item) => item.unread).length, []);
+    const handleActionPress = useCallback(
+        (item) => {
+            if (!item.request) {
+                return;
+            }
 
-    const tabCounts = useMemo(
-        () => ({
-            all: approvalNotifications.length,
-            approvals: approvalNotifications.filter((item) => item.category === 'approvals').length,
-            requests: approvalNotifications.filter((item) => item.category === 'requests').length,
-        }),
-        []
+            navigation.navigate('ApprovalRequestReview', { request: item.request });
+        },
+        [navigation]
     );
 
-    const filteredNotifications = useMemo(() => {
-        if (activeTab === 'all') {
-            return approvalNotifications;
-        }
+    const renderNotificationItem = useCallback(
+        ({ item }) => <ApprovalNotificationCard item={item} onActionPress={() => handleActionPress(item)} />,
+        [handleActionPress]
+    );
 
-        return approvalNotifications.filter((item) => item.category === activeTab);
-    }, [activeTab]);
+    const keyExtractor = useCallback((item) => item.id, []);
 
     return (
         <ApprovalScreenLayout
@@ -311,31 +322,45 @@ export function ApprovalNotificationsScreen({ navigation }) {
             navigation={navigation}
             notificationCount={8}
             showBackButton
-            scrollContentStyle={styles.scrollContent}
+            useScrollView={false}
         >
-            <ScrollView contentContainerStyle={styles.tabRow} horizontal showsHorizontalScrollIndicator={false}>
-                {notificationTabs.map((tab) => (
-                    <Pressable key={tab.key} onPress={() => setActiveTab(tab.key)} style={[styles.tabItem, activeTab === tab.key ? styles.tabItemActive : null]}>
+            <View style={styles.tabRow}>
+                {notificationTabs.map((tab, index) => (
+                    <Pressable
+                        key={tab.key}
+                        onPress={() => setActiveTab(tab.key)}
+                        style={[
+                            styles.tabItem,
+                            index < notificationTabs.length - 1 ? styles.tabItemSpacing : null,
+                            activeTab === tab.key ? styles.tabItemActive : null,
+                        ]}
+                    >
                         <Text style={[styles.tabLabel, activeTab === tab.key ? styles.tabLabelActive : null]}>{tab.label}</Text>
                         <View style={[styles.tabCountBadge, activeTab === tab.key ? styles.tabCountBadgeActive : null]}>
                             <Text style={[styles.tabCountText, activeTab === tab.key ? styles.tabCountTextActive : null]}>{tabCounts[tab.key]}</Text>
                         </View>
                     </Pressable>
                 ))}
-            </ScrollView>
-
-            <View style={styles.pagePadding}>
-                <View style={styles.subHeaderRow}>
-                    <Text style={styles.subHeaderText}>{unreadCount} unread notifications</Text>
-                    <Pressable>
-                        <Text style={styles.clearAllText}>Clear all</Text>
-                    </Pressable>
-                </View>
-
-                {filteredNotifications.map((item) => (
-                    <ApprovalNotificationCard item={item} key={item.id} onActionPress={() => navigation.navigate('ApprovalRequestReview', { request: item.request })} />
-                ))}
             </View>
+
+            <FlatList
+                contentContainerStyle={[styles.pagePadding, styles.scrollContent]}
+                data={filteredNotifications}
+                extraData={activeTab}
+                keyExtractor={keyExtractor}
+                keyboardShouldPersistTaps="handled"
+                ListHeaderComponent={
+                    <View style={styles.subHeaderRow}>
+                        <Text style={styles.subHeaderText}>{unreadCount} unread notifications</Text>
+                        <Pressable>
+                            <Text style={styles.clearAllText}>Clear all</Text>
+                        </Pressable>
+                    </View>
+                }
+                renderItem={renderNotificationItem}
+                removeClippedSubviews
+                showsVerticalScrollIndicator={false}
+            />
         </ApprovalScreenLayout>
     );
 }

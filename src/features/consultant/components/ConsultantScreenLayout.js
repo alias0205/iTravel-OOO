@@ -57,6 +57,7 @@ export function ConsultantScreenLayout({
     topBarProps,
     scrollContentStyle,
     scrollEnabled = true,
+    useScrollView = true,
 }) {
     const { authProfile, signOut } = useAuthSession();
 
@@ -116,15 +117,19 @@ export function ConsultantScreenLayout({
                 title={headerTitle}
             />
 
-            <ScrollView
-                contentContainerStyle={[styles.scrollContent, scrollContentStyle]}
-                keyboardShouldPersistTaps="handled"
-                nestedScrollEnabled
-                scrollEnabled={scrollEnabled}
-                showsVerticalScrollIndicator={false}
-            >
-                {children}
-            </ScrollView>
+            {useScrollView ? (
+                <ScrollView
+                    contentContainerStyle={[styles.scrollContent, scrollContentStyle]}
+                    keyboardShouldPersistTaps="handled"
+                    nestedScrollEnabled
+                    scrollEnabled={scrollEnabled}
+                    showsVerticalScrollIndicator={false}
+                >
+                    {children}
+                </ScrollView>
+            ) : (
+                <View style={[styles.contentBody, styles.scrollContent, scrollContentStyle]}>{children}</View>
+            )}
 
             <DashboardBottomNav activeKey={activeNavKey} items={navItems} onItemPress={handleNavPress} />
         </SafeAreaView>

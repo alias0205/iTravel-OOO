@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 
@@ -8,6 +8,7 @@ import { approveOutOfOfficeRequest, fetchApprovalRequestCounts, fetchApprovalReq
 import { useAuthSession } from '../../auth/context/AuthSessionContext';
 import { ApprovalRequestListScreenStyles as styles } from '../../../styles';
 import { ApprovalRequestCard } from '../../../shared/components/dashboard/ApprovalRequestCard';
+import { usePaginatedCollection } from '../../../shared/hooks/usePaginatedCollection';
 
 const requestTabs = [
     { key: 'all', label: 'All' },
@@ -23,145 +24,67 @@ export function ApprovalRequestListScreen({ navigation, route }) {
     const [activeTab, setActiveTab] = useState('all');
     const [pendingApprovalRequest, setPendingApprovalRequest] = useState(null);
     const [isApprovingRequest, setIsApprovingRequest] = useState(false);
-    const [requests, setRequests] = useState([]);
-    const [tabCounts, setTabCounts] = useState({ all: 0, pending: 0, approved: 0, rejected: 0, 'by-me': 0 });
-    const [isLoading, setIsLoading] = useState(true);
-    const [isLoadingMore, setIsLoadingMore] = useState(false);
-    const [loadError, setLoadError] = useState('');
-    const [reloadKey, setReloadKey] = useState(0);
-    const [pagination, setPagination] = useState({ currentPage: 1, lastPage: 1, total: 0 });
     const refreshKey = route?.params?.refreshKey;
+
+    const handleUnauthorized = useCallback(async () => {
+        await signOut();
+        navigation.reset({ index: 0, routes: [{ name: 'Splash' }] });
+    }, [navigation, signOut]);
+
+    const loadCounts = useCallback(() => fetchApprovalRequestCounts({ adminId, token: session?.token }), [adminId, session?.token]);
+
+    const loadPage = useCallback(
+        ({ page, activeTab: nextTab }) => {
+            if (nextTab === 'by-me') {
+                return fetchApprovalRequestsByAdmin({
+                    adminId,
+                    page,
+                    perPage: 15,
+                    token: session?.token,
+                });
+            }
+
+            return fetchApprovalRequests({
+                page,
+                perPage: 15,
+                status: nextTab === 'all' ? undefined : nextTab,
+                token: session?.token,
+            });
+        },
+        [adminId, session?.token]
+    );
+
+    const { isLoading, isLoadingMore, items: requests, loadError, loadMore, pagination, refresh, setItems: setRequests, tabCounts } = usePaginatedCollection({
+        activeTab,
+        initialCounts: { all: 0, pending: 0, approved: 0, rejected: 0, 'by-me': 0 },
+        loadCounts,
+        loadPage,
+        onUnauthorized: handleUnauthorized,
+    });
 
     useFocusEffect(
         useCallback(() => {
-            setReloadKey((currentValue) => currentValue + 1);
-        }, [])
+            refresh();
+        }, [refresh])
     );
 
     useEffect(() => {
-        let isMounted = true;
+        if (refreshKey == null) {
+            return;
+        }
 
+        refresh();
+    }, [refresh, refreshKey]);
+
+    const handleLoadMore = useCallback(() => {
         void (async () => {
-            try {
-                const counts = await fetchApprovalRequestCounts({ adminId, token: session?.token });
+            const result = await loadMore();
 
-                if (isMounted) {
-                    setTabCounts((currentValue) => ({ ...currentValue, ...counts }));
-                }
-            } catch (error) {
-                if (!isMounted) {
-                    return;
-                }
-
-                if (error?.status === 401) {
-                    await signOut();
-                    navigation.reset({ index: 0, routes: [{ name: 'Splash' }] });
-                }
+            if (!result.ok && result.reason === 'error') {
+                Alert.alert('Load More Failed', result.message || 'Unable to load more requests.');
             }
         })();
-
-        return () => {
-            isMounted = false;
-        };
-    }, [adminId, navigation, reloadKey, session?.token, signOut]);
-
-    useEffect(() => {
-        let isMounted = true;
-
-        void (async () => {
-            setIsLoading(true);
-            setLoadError('');
-
-            try {
-                const result =
-                    activeTab === 'by-me'
-                        ? await fetchApprovalRequestsByAdmin({
-                              adminId,
-                              page: 1,
-                              perPage: 15,
-                              token: session?.token,
-                          })
-                        : await fetchApprovalRequests({
-                              page: 1,
-                              perPage: 15,
-                              status: activeTab === 'all' ? undefined : activeTab,
-                              token: session?.token,
-                          });
-
-                if (!isMounted) {
-                    return;
-                }
-
-                setRequests(result.items);
-                setPagination(result.meta);
-            } catch (error) {
-                if (!isMounted) {
-                    return;
-                }
-
-                const message = error instanceof Error ? error.message : 'Unable to load requests right now.';
-
-                if (error?.status === 401) {
-                    await signOut();
-                    navigation.reset({ index: 0, routes: [{ name: 'Splash' }] });
-                    return;
-                }
-
-                setLoadError(message);
-            } finally {
-                if (isMounted) {
-                    setIsLoading(false);
-                }
-            }
-        })();
-
-        return () => {
-            isMounted = false;
-        };
-    }, [activeTab, adminId, navigation, refreshKey, reloadKey, session?.token, signOut]);
-
-    const handleLoadMore = () => {
-        void (async () => {
-            if (isLoadingMore || isLoading || pagination.currentPage >= pagination.lastPage) {
-                return;
-            }
-
-            setIsLoadingMore(true);
-
-            try {
-                const nextPage = pagination.currentPage + 1;
-                const result =
-                    activeTab === 'by-me'
-                        ? await fetchApprovalRequestsByAdmin({
-                              adminId,
-                              page: nextPage,
-                              perPage: 15,
-                              token: session?.token,
-                          })
-                        : await fetchApprovalRequests({
-                              page: nextPage,
-                              perPage: 15,
-                              status: activeTab === 'all' ? undefined : activeTab,
-                              token: session?.token,
-                          });
-
-                setRequests((currentValue) => [...currentValue, ...result.items]);
-                setPagination(result.meta);
-            } catch (error) {
-                const message = error instanceof Error ? error.message : 'Unable to load more requests.';
-
-                if (error?.status === 401) {
-                    await signOut();
-                    navigation.reset({ index: 0, routes: [{ name: 'Splash' }] });
-                    return;
-                }
-
-                Alert.alert('Load More Failed', message);
-            } finally {
-                setIsLoadingMore(false);
-            }
-        })();
-    };
+    }, [loadMore]);
 
     const getReviewerLabel = (request) => {
         if (!(request.statusTone === 'approved' || request.statusTone === 'rejected') || !request.reviewerName) {
@@ -177,6 +100,32 @@ export function ApprovalRequestListScreen({ navigation, route }) {
 
         return isCurrentReviewer ? 'by me' : `by ${request.reviewerName}`;
     };
+
+    const requestCards = useMemo(
+        () =>
+            requests.map((request) => (
+                <ApprovalRequestCard
+                    avatarLabel={request.avatarLabel}
+                    avatarSource={request.avatarSource}
+                    dateRange={request.dateRange}
+                    duration={request.duration}
+                    key={request.id}
+                    leaveLabel={request.leaveLabel}
+                    leaveToneKey={request.leaveToneKey}
+                    name={request.name}
+                    serverNow={request.serverNow}
+                    submittedAt={request.raw?.created_at || request.submittedAt}
+                    onPress={() => navigation.navigate('ApprovalRequestReview', { request })}
+                    reviewerLabel={getReviewerLabel(request)}
+                    role={request.role}
+                    statusLabel={request.statusLabel}
+                    statusTone={request.statusTone}
+                    onApprovePress={() => setPendingApprovalRequest(request)}
+                    onReviewPress={() => navigation.navigate('ApprovalRequestReview', { request })}
+                />
+            )),
+        [authProfile?.email, authProfile?.fullName, navigation, requests]
+    );
 
     return (
         <>
@@ -205,35 +154,13 @@ export function ApprovalRequestListScreen({ navigation, route }) {
                     {!isLoading && loadError ? (
                         <View style={styles.retryWrap}>
                             <Text style={styles.errorState}>{loadError}</Text>
-                            <Pressable onPress={() => setReloadKey((currentValue) => currentValue + 1)} style={styles.retryButton}>
+                            <Pressable onPress={refresh} style={styles.retryButton}>
                                 <Text style={styles.retryButtonText}>Try Again</Text>
                             </Pressable>
                         </View>
                     ) : null}
 
-                    {!isLoading && !loadError
-                        ? requests.map((request) => (
-                              <ApprovalRequestCard
-                                  avatarLabel={request.avatarLabel}
-                                  avatarSource={request.avatarSource}
-                                  dateRange={request.dateRange}
-                                  duration={request.duration}
-                                  key={request.id}
-                                  leaveLabel={request.leaveLabel}
-                                  leaveToneKey={request.leaveToneKey}
-                                  name={request.name}
-                                  serverNow={request.serverNow}
-                                  submittedAt={request.raw?.created_at || request.submittedAt}
-                                  onPress={() => navigation.navigate('ApprovalRequestReview', { request })}
-                                  reviewerLabel={getReviewerLabel(request)}
-                                  role={request.role}
-                                  statusLabel={request.statusLabel}
-                                  statusTone={request.statusTone}
-                                  onApprovePress={() => setPendingApprovalRequest(request)}
-                                  onReviewPress={() => navigation.navigate('ApprovalRequestReview', { request })}
-                              />
-                          ))
-                        : null}
+                    {!isLoading && !loadError ? requestCards : null}
                     {!isLoading && !loadError && requests.length === 0 ? <Text style={styles.emptyState}>No requests in this category.</Text> : null}
                     {!isLoading && !loadError && pagination.currentPage < pagination.lastPage ? (
                         <Pressable onPress={handleLoadMore} style={[styles.loadMoreButton, isLoadingMore ? styles.loadMoreButtonDisabled : null]}>
@@ -277,7 +204,7 @@ export function ApprovalRequestListScreen({ navigation, route }) {
                                         return true;
                                     })
                             );
-                            setReloadKey((currentValue) => currentValue + 1);
+                            refresh();
                             Alert.alert('Request Approved', approvedRequest.name + "'s request has been approved.");
                         } catch (error) {
                             const message = error instanceof Error ? error.message : 'Unable to approve this request right now.';
@@ -300,7 +227,7 @@ export function ApprovalRequestListScreen({ navigation, route }) {
                             if (status === 409) {
                                 Alert.alert('Already Reviewed', message || 'This request has already been reviewed.');
                                 setPendingApprovalRequest(null);
-                                setReloadKey((currentValue) => currentValue + 1);
+                                refresh();
                                 return;
                             }
 

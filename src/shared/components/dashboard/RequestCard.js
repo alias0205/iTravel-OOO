@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, Text, View } from 'react-native';
 
@@ -10,7 +11,7 @@ const iconTone = {
     red: { backgroundColor: '#FDECEC', color: '#EB4B46' },
 };
 
-export function RequestCard({ title, dateRange, duration, detail, meta, icon, iconColor = 'blue', statusLabel, statusTone, onPress }) {
+function RequestCardComponent({ title, dateRange, duration, detail, meta, icon, iconColor = 'blue', statusLabel, statusTone, onPress }) {
     const currentIconTone = iconTone[iconColor] ?? iconTone.blue;
 
     return (
@@ -40,3 +41,19 @@ export function RequestCard({ title, dateRange, duration, detail, meta, icon, ic
         </Pressable>
     );
 }
+
+function arePropsEqual(previousProps, nextProps) {
+    return (
+        previousProps.title === nextProps.title &&
+        previousProps.dateRange === nextProps.dateRange &&
+        previousProps.duration === nextProps.duration &&
+        previousProps.detail === nextProps.detail &&
+        previousProps.meta === nextProps.meta &&
+        previousProps.icon === nextProps.icon &&
+        previousProps.iconColor === nextProps.iconColor &&
+        previousProps.statusLabel === nextProps.statusLabel &&
+        previousProps.statusTone === nextProps.statusTone
+    );
+}
+
+export const RequestCard = memo(RequestCardComponent, arePropsEqual);

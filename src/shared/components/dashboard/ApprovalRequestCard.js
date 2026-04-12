@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image, Pressable, Text, View } from 'react-native';
 
@@ -66,7 +67,7 @@ function formatRelativeSubmittedTime(submittedAtValue, referenceTimeValue) {
     return `${years} ${years === 1 ? 'year' : 'years'} ago`;
 }
 
-export function ApprovalRequestCard({
+function ApprovalRequestCardComponent({
     name,
     role,
     leaveLabel,
@@ -148,3 +149,23 @@ export function ApprovalRequestCard({
         </Pressable>
     );
 }
+
+function arePropsEqual(previousProps, nextProps) {
+    return (
+        previousProps.name === nextProps.name &&
+        previousProps.role === nextProps.role &&
+        previousProps.leaveLabel === nextProps.leaveLabel &&
+        previousProps.leaveToneKey === nextProps.leaveToneKey &&
+        previousProps.dateRange === nextProps.dateRange &&
+        previousProps.duration === nextProps.duration &&
+        previousProps.submittedAt === nextProps.submittedAt &&
+        previousProps.serverNow === nextProps.serverNow &&
+        previousProps.avatarLabel === nextProps.avatarLabel &&
+        previousProps.avatarSource === nextProps.avatarSource &&
+        previousProps.reviewerLabel === nextProps.reviewerLabel &&
+        previousProps.statusLabel === nextProps.statusLabel &&
+        previousProps.statusTone === nextProps.statusTone
+    );
+}
+
+export const ApprovalRequestCard = memo(ApprovalRequestCardComponent, arePropsEqual);

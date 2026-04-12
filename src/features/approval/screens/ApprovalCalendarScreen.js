@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
@@ -7,7 +7,7 @@ import { ApprovalCalendarScreenStyles as styles } from '../../../styles';
 import {
     addMonths,
     buildAvailableYears,
-    buildTimelineRows,
+    buildTimelineLayout,
     buildMonthCells,
     buildUpcomingItems,
     formatDateKey,
@@ -20,16 +20,16 @@ import {
     weekdayLabels,
 } from '../utils/approvalCalendarUtils';
 
-function LegendItem({ color, label }) {
+const LegendItem = memo(function LegendItem({ color, label }) {
     return (
         <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: color }]} />
             <Text style={styles.legendLabel}>{label}</Text>
         </View>
     );
-}
+});
 
-function EventPill({ label, tone }) {
+const EventPill = memo(function EventPill({ label, tone }) {
     const eventStyle = tone === 'pending' ? styles.eventPillPending : styles.eventPillApproved;
 
     const textStyle = tone === 'pending' ? styles.eventPillTextPending : styles.eventPillTextApproved;
@@ -41,9 +41,9 @@ function EventPill({ label, tone }) {
             </Text>
         </View>
     );
-}
+});
 
-function UpcomingEventCard({ item }) {
+const UpcomingEventCard = memo(function UpcomingEventCard({ item }) {
     const avatarWrapStyle = item.tone === 'holiday' ? styles.upcomingAvatarWrapHoliday : styles.upcomingAvatarWrapApproved;
     const avatarIconColor = item.tone === 'holiday' ? '#9333EA' : '#4B7BE8';
     const iconName = item.tone === 'holiday' ? 'calendar-star' : 'account';
@@ -68,9 +68,9 @@ function UpcomingEventCard({ item }) {
             />
         </View>
     );
-}
+});
 
-function TimelineBar({ item, tone }) {
+const TimelineBar = memo(function TimelineBar({ item, tone }) {
     const barStyle = tone === 'pending' ? styles.timelineBarPending : styles.timelineBarApproved;
 
     const textStyle = tone === 'pending' ? styles.timelineBarTextPending : styles.timelineBarTextDefault;
@@ -82,7 +82,7 @@ function TimelineBar({ item, tone }) {
             </Text>
         </View>
     );
-}
+});
 
 export function ApprovalCalendarScreen({ navigation }) {
     const [viewMode, setViewMode] = useState('timeline');
@@ -95,49 +95,45 @@ export function ApprovalCalendarScreen({ navigation }) {
     const activeFilter = 'all';
 
     const monthCells = useMemo(() => buildMonthCells(selectedMonth, selectedDateKey, activeFilter), [activeFilter, selectedDateKey, selectedMonth]);
-
     const upcomingItems = useMemo(() => buildUpcomingItems(activeFilter, selectedDateKey), [activeFilter, selectedDateKey]);
-    const timelineRows = useMemo(() => buildTimelineRows(selectedMonth, activeFilter), [activeFilter, selectedMonth]);
+    const timelineLayout = useMemo(() => buildTimelineLayout(selectedMonth, activeFilter), [activeFilter, selectedMonth]);
     const selectedDate = useMemo(() => parseDateKey(selectedDateKey), [selectedDateKey]);
     const monthLabel = `${monthLabels[selectedMonth.getMonth()]} ${selectedMonth.getFullYear()}`;
     const selectedYearIndex = useMemo(() => availableYears.indexOf(selectedMonth.getFullYear()), [availableYears, selectedMonth]);
-    const daysInMonth = useMemo(() => new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0).getDate(), [selectedMonth]);
-    const timelineDays = useMemo(
-        () => Array.from({ length: daysInMonth }, (_, index) => new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), index + 1)),
-        [daysInMonth, selectedMonth]
-    );
-    const timelineTrackWidth = timelineDays.length * 56;
+    const timelineDays = timelineLayout.days;
+    const timelineRows = timelineLayout.rows;
+    const timelineTrackWidth = timelineLayout.trackWidth;
 
-    const handleMonthChange = (step) => {
+    const handleMonthChange = useCallback((step) => {
         const nextMonth = addMonths(selectedMonth, step);
         setSelectedMonth(nextMonth);
         setSelectedDateKey(formatDateKey(new Date(nextMonth.getFullYear(), nextMonth.getMonth(), 1)));
-    };
+    }, [selectedMonth]);
 
-    const handleCellPress = (cell) => {
+    const handleCellPress = useCallback((cell) => {
         setSelectedDateKey(cell.dateKey);
 
         if (!sameMonth(cell.date, selectedMonth)) {
             setSelectedMonth(new Date(cell.date.getFullYear(), cell.date.getMonth(), 1));
         }
-    };
+    }, [selectedMonth]);
 
-    const handleYearSelect = (year) => {
+    const handleYearSelect = useCallback((year) => {
         const nextMonth = new Date(year, selectedMonth.getMonth(), 1);
         setSelectedMonth(nextMonth);
         setSelectedDateKey(formatDateKey(new Date(year, selectedMonth.getMonth(), 1)));
         setShowYearPicker(false);
-    };
+    }, [selectedMonth]);
 
-    const handleViewToggle = () => {
+    const handleViewToggle = useCallback(() => {
         setViewMode((currentValue) => (currentValue === 'month' ? 'timeline' : 'month'));
-    };
+    }, []);
 
-    const handleTimelineScroll = ({ nativeEvent }) => {
+    const handleTimelineScroll = useCallback(({ nativeEvent }) => {
         const nextCompactState = nativeEvent.contentOffset.x > 12;
 
         setShowTimelineShortNames((currentValue) => (currentValue === nextCompactState ? currentValue : nextCompactState));
-    };
+    }, []);
 
     useEffect(() => {
         if (!showYearPicker || !yearPickerRef.current || selectedYearIndex < 0) {
@@ -154,11 +150,21 @@ export function ApprovalCalendarScreen({ navigation }) {
         return () => cancelAnimationFrame(frameId);
     }, [selectedYearIndex, showYearPicker]);
 
-    const headerRight = (
-        <Pressable onPress={handleViewToggle} style={[styles.optionButton, styles.optionButtonActive]}>
-            <MaterialCommunityIcons color="#0A6B63" name={viewMode === 'month' ? 'view-agenda-outline' : 'calendar-month-outline'} size={18} />
-            <Text style={[styles.optionButtonText, styles.optionButtonTextActive]}>{viewMode === 'month' ? 'Timeline View' : 'Month View'}</Text>
-        </Pressable>
+    const headerRight = useMemo(
+        () => (
+            <Pressable onPress={handleViewToggle} style={[styles.optionButton, styles.optionButtonActive]}>
+                <MaterialCommunityIcons color="#0A6B63" name={viewMode === 'month' ? 'view-agenda-outline' : 'calendar-month-outline'} size={18} />
+                <Text style={[styles.optionButtonText, styles.optionButtonTextActive]}>{viewMode === 'month' ? 'Timeline View' : 'Month View'}</Text>
+            </Pressable>
+        ),
+        [handleViewToggle, viewMode]
+    );
+
+    const handleTimelineEventPress = useCallback(
+        (request) => {
+            navigation.navigate('ApprovalRequestReview', { request });
+        },
+        [navigation]
     );
 
     return (
@@ -258,25 +264,12 @@ export function ApprovalCalendarScreen({ navigation }) {
                                                     ))}
                                                 </View>
 
-                                                {row.events.map((item) => {
-                                                    const startDate = parseDateKey(item.startDateKey);
-                                                    const endDate = parseDateKey(item.endDateKey);
-                                                    const visibleStart = startDate < timelineDays[0] ? timelineDays[0] : startDate;
-                                                    const visibleEnd = endDate > timelineDays[timelineDays.length - 1] ? timelineDays[timelineDays.length - 1] : endDate;
-                                                    const startOffset = visibleStart.getDate() - 1;
-                                                    const spanDays = visibleEnd.getDate() - visibleStart.getDate() + 1;
-
+                                                {row.positionedEvents.map((item) => {
                                                     return (
                                                         <Pressable
                                                             key={item.id}
-                                                            onPress={() => navigation.navigate('ApprovalRequestReview', { request: item.request })}
-                                                            style={[
-                                                                styles.timelineBarWrap,
-                                                                {
-                                                                    left: startOffset * 56,
-                                                                    width: Math.max(spanDays * 56 - 6, 50),
-                                                                },
-                                                            ]}
+                                                            onPress={() => handleTimelineEventPress(item.request)}
+                                                            style={[styles.timelineBarWrap, { left: item.left, width: item.width }]}
                                                         >
                                                             <TimelineBar item={item} tone={item.tone} />
                                                         </Pressable>

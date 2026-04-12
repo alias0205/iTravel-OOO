@@ -10,7 +10,7 @@ import { ApprovalScreenLayoutStyles as styles } from '../../../styles';
 const approvalNavItems = [
     { key: 'dashboard', label: 'Dashboard', icon: 'view-dashboard-outline', routeName: 'ApprovalDashboard' },
     { key: 'calendar', label: 'Calendar', icon: 'calendar-month-outline', routeName: 'ApprovalCalendar' },
-    { key: 'approvals', label: 'Requests', icon: 'clipboard-check-outline', routeName: 'ApprovalRequestList', badge: 1 },
+    { key: 'approvals', label: 'Requests', icon: 'clipboard-check-outline', routeName: 'ApprovalRequestList' },
     { key: 'notifications', label: 'Notifications', icon: 'bell-outline', routeName: 'ApprovalNotifications', badge: 8 },
     { key: 'settings', label: 'Settings', icon: 'cog-outline', routeName: 'ApprovalSettings' },
 ];
@@ -59,6 +59,7 @@ export function ApprovalScreenLayout({
     notificationCount = 8,
     scrollContentStyle,
     topBarProps,
+    useScrollView = true,
 }) {
     const { authProfile, signOut } = useAuthSession();
 
@@ -114,9 +115,13 @@ export function ApprovalScreenLayout({
                 title={headerTitle}
             />
 
-            <ScrollView contentContainerStyle={[styles.scrollContent, scrollContentStyle]} showsVerticalScrollIndicator={false}>
-                {children}
-            </ScrollView>
+            {useScrollView ? (
+                <ScrollView contentContainerStyle={[styles.scrollContent, scrollContentStyle]} showsVerticalScrollIndicator={false}>
+                    {children}
+                </ScrollView>
+            ) : (
+                <View style={[styles.contentBody, styles.scrollContent, scrollContentStyle]}>{children}</View>
+            )}
 
             <DashboardBottomNav activeKey={activeNavKey} items={navItems} onItemPress={handleBottomNavPress} />
         </SafeAreaView>

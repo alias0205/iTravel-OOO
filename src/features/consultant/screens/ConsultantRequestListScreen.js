@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { getApprovalDurationBreakdown } from '../../approval/utils/approvalDurationUtils';
@@ -7,6 +8,7 @@ import { fetchOutOfOfficeRequestCounts, fetchOutOfOfficeRequests } from '../util
 import { useAuthSession } from '../../auth/context/AuthSessionContext';
 import { ConsultantRequestListScreenStyles as styles } from '../../../styles';
 import { RequestCard } from '../../../shared/components/dashboard/RequestCard';
+import { usePaginatedCollection } from '../../../shared/hooks/usePaginatedCollection';
 
 const requestTabs = [
     { key: 'all', label: 'All' },
@@ -28,122 +30,67 @@ function getCompactDurationBreakdown(request) {
 export function ConsultantRequestListScreen({ navigation }) {
     const { session, signOut } = useAuthSession();
     const [activeTab, setActiveTab] = useState('all');
-    const [requests, setRequests] = useState([]);
-    const [tabCounts, setTabCounts] = useState({ all: 0, pending: 0, approved: 0, rejected: 0 });
-    const [isLoading, setIsLoading] = useState(true);
-    const [isLoadingMore, setIsLoadingMore] = useState(false);
-    const [loadError, setLoadError] = useState('');
-    const [reloadKey, setReloadKey] = useState(0);
-    const [pagination, setPagination] = useState({ currentPage: 1, lastPage: 1, total: 0 });
+    const handleUnauthorized = useCallback(async () => {
+        await signOut();
+        navigation.reset({ index: 0, routes: [{ name: 'Splash' }] });
+    }, [navigation, signOut]);
 
-    useEffect(() => {
-        let isMounted = true;
+    const loadCounts = useCallback(() => fetchOutOfOfficeRequestCounts({ token: session?.token }), [session?.token]);
 
+    const loadPage = useCallback(
+        ({ page, activeTab: nextTab }) =>
+            fetchOutOfOfficeRequests({
+                page,
+                perPage: 15,
+                status: nextTab === 'all' ? undefined : nextTab,
+                token: session?.token,
+            }),
+        [session?.token]
+    );
+
+    const { isLoading, isLoadingMore, items: requests, loadError, loadMore, pagination, refresh, tabCounts } = usePaginatedCollection({
+        activeTab,
+        initialCounts: { all: 0, pending: 0, approved: 0, rejected: 0 },
+        loadCounts,
+        loadPage,
+        onUnauthorized: handleUnauthorized,
+    });
+
+    useFocusEffect(
+        useCallback(() => {
+            refresh();
+        }, [refresh])
+    );
+
+    const requestCards = useMemo(
+        () =>
+            requests.map((request) => (
+                <RequestCard
+                    key={request.id}
+                    dateRange={request.dateRange}
+                    detail={getCompactDurationBreakdown(request)}
+                    duration={request.duration}
+                    icon={request.icon}
+                    iconColor={request.iconColor}
+                    meta={request.meta}
+                    onPress={() => navigation.navigate('ConsultantRequestDetail', { request })}
+                    statusLabel={request.statusLabel}
+                    statusTone={request.statusTone}
+                    title={request.title}
+                />
+            )),
+        [navigation, requests]
+    );
+
+    const handleLoadMore = useCallback(() => {
         void (async () => {
-            try {
-                const counts = await fetchOutOfOfficeRequestCounts({ token: session?.token });
+            const result = await loadMore();
 
-                if (isMounted) {
-                    setTabCounts((currentValue) => ({ ...currentValue, ...counts }));
-                }
-            } catch (error) {
-                if (!isMounted) {
-                    return;
-                }
-
-                if (error?.status === 401) {
-                    await signOut();
-                    navigation.reset({ index: 0, routes: [{ name: 'Splash' }] });
-                }
+            if (!result.ok && result.reason === 'error') {
+                Alert.alert('Load More Failed', result.message || 'Unable to load more requests.');
             }
         })();
-
-        return () => {
-            isMounted = false;
-        };
-    }, [navigation, session?.token, signOut]);
-
-    useEffect(() => {
-        let isMounted = true;
-
-        void (async () => {
-            setIsLoading(true);
-            setLoadError('');
-
-            try {
-                const result = await fetchOutOfOfficeRequests({
-                    page: 1,
-                    perPage: 15,
-                    status: activeTab === 'all' ? undefined : activeTab,
-                    token: session?.token,
-                });
-
-                if (!isMounted) {
-                    return;
-                }
-
-                setRequests(result.items);
-                setPagination(result.meta);
-            } catch (error) {
-                if (!isMounted) {
-                    return;
-                }
-
-                const message = error instanceof Error ? error.message : 'Unable to load requests right now.';
-
-                if (error?.status === 401) {
-                    await signOut();
-                    navigation.reset({ index: 0, routes: [{ name: 'Splash' }] });
-                    return;
-                }
-
-                setLoadError(message);
-            } finally {
-                if (isMounted) {
-                    setIsLoading(false);
-                }
-            }
-        })();
-
-        return () => {
-            isMounted = false;
-        };
-    }, [activeTab, navigation, reloadKey, session?.token, signOut]);
-
-    const handleLoadMore = () => {
-        void (async () => {
-            if (isLoadingMore || isLoading || pagination.currentPage >= pagination.lastPage) {
-                return;
-            }
-
-            setIsLoadingMore(true);
-
-            try {
-                const nextPage = pagination.currentPage + 1;
-                const result = await fetchOutOfOfficeRequests({
-                    page: nextPage,
-                    perPage: 15,
-                    status: activeTab === 'all' ? undefined : activeTab,
-                    token: session?.token,
-                });
-
-                setRequests((currentValue) => [...currentValue, ...result.items]);
-                setPagination(result.meta);
-            } catch (error) {
-                const message = error instanceof Error ? error.message : 'Unable to load more requests.';
-
-                if (error?.status === 401) {
-                    await signOut();
-                    navigation.reset({ index: 0, routes: [{ name: 'Splash' }] });
-                    return;
-                }
-
-                Alert.alert('Load More Failed', message);
-            } finally {
-                setIsLoadingMore(false);
-            }
-        })();
-    };
+    }, [loadMore]);
 
     return (
         <ConsultantScreenLayout
@@ -171,29 +118,13 @@ export function ConsultantRequestListScreen({ navigation }) {
                 {!isLoading && loadError ? (
                     <View style={styles.retryWrap}>
                         <Text style={styles.errorState}>{loadError}</Text>
-                        <Pressable onPress={() => setReloadKey((currentValue) => currentValue + 1)} style={styles.retryButton}>
+                        <Pressable onPress={refresh} style={styles.retryButton}>
                             <Text style={styles.retryButtonText}>Try Again</Text>
                         </Pressable>
                     </View>
                 ) : null}
 
-                {!isLoading && !loadError
-                    ? requests.map((request) => (
-                          <RequestCard
-                              key={request.id}
-                              dateRange={request.dateRange}
-                              detail={getCompactDurationBreakdown(request)}
-                              duration={request.duration}
-                              icon={request.icon}
-                              iconColor={request.iconColor}
-                              meta={request.meta}
-                              onPress={() => navigation.navigate('ConsultantRequestDetail', { request })}
-                              statusLabel={request.statusLabel}
-                              statusTone={request.statusTone}
-                              title={request.title}
-                          />
-                      ))
-                    : null}
+                {!isLoading && !loadError ? requestCards : null}
                 {!isLoading && !loadError && requests.length === 0 ? <Text style={styles.emptyState}>No requests in this category.</Text> : null}
                 {!isLoading && !loadError && pagination.currentPage < pagination.lastPage ? (
                     <Pressable onPress={handleLoadMore} style={[styles.loadMoreButton, isLoadingMore ? styles.loadMoreButtonDisabled : null]}>

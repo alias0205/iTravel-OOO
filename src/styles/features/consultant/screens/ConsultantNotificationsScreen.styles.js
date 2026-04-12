@@ -1,6 +1,12 @@
 import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
+    headerAction: {
+        color: '#0A6B63',
+        fontSize: 14,
+        lineHeight: 20,
+        fontWeight: '700',
+    },
     settingsButton: {
         width: 36,
         height: 36,
@@ -15,12 +21,16 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
     },
     tabItem: {
+        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'center',
         paddingVertical: 14,
-        marginRight: 18,
         borderBottomWidth: 2,
         borderBottomColor: 'transparent',
+    },
+    tabItemSpacing: {
+        marginRight: 12,
     },
     tabItemActive: {
         borderBottomColor: '#0A6B63',
@@ -62,6 +72,23 @@ const styles = StyleSheet.create({
     pagePadding: {
         paddingHorizontal: 16,
         paddingTop: 18,
+    },
+    subHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 14,
+    },
+    subHeaderText: {
+        color: '#6B7280',
+        fontSize: 15,
+        lineHeight: 20,
+    },
+    clearAllText: {
+        color: '#EF4444',
+        fontSize: 14,
+        lineHeight: 20,
+        fontWeight: '700',
     },
     emptyState: {
         color: '#6B7280',

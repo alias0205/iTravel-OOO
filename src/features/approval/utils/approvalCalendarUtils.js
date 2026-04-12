@@ -106,6 +106,10 @@ const holidayRecords = [
     { id: 'new-year', date: '2025-01-01', title: "New Year's Day", summary: 'Jan 1, 2025' },
 ];
 
+const DAY_WIDTH = 56;
+const calendarDataCache = new Map();
+const timelineLayoutCache = new Map();
+
 export function buildAvailableYears(startYear = 2000, endYear = 2050) {
     return Array.from({ length: endYear - startYear + 1 }, (_, index) => startYear + index);
 }
@@ -243,54 +247,7 @@ function buildHolidayMap(activeFilter) {
     }, {});
 }
 
-export function buildMonthCells(monthDate, selectedDateKey, activeFilter) {
-    const firstDayOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
-    const gridStart = addDays(firstDayOfMonth, -firstDayOfMonth.getDay());
-    const eventMap = buildEventMap(activeFilter);
-    const holidayMap = buildHolidayMap(activeFilter);
-
-    return Array.from({ length: 42 }, (_, index) => {
-        const currentDate = addDays(gridStart, index);
-        const dateKey = formatDateKey(currentDate);
-        const holiday = holidayMap[dateKey];
-
-        return {
-            date: currentDate,
-            dateKey,
-            day: currentDate.getDate(),
-            muted: !sameMonth(currentDate, monthDate),
-            highlighted: dateKey === selectedDateKey,
-            events: eventMap[dateKey] ?? [],
-            holiday: holiday ? holiday.title : null,
-        };
-    });
-}
-
-export function buildUpcomingItems(activeFilter, selectedDateKey) {
-    const selectedEvents = (buildEventMap(activeFilter)[selectedDateKey] ?? []).map((event) => ({
-        id: event.id,
-        name: event.title,
-        date: event.summary,
-        tone: event.type,
-        highlighted: false,
-    }));
-
-    const selectedHoliday = buildHolidayMap(activeFilter)[selectedDateKey];
-
-    if (selectedHoliday) {
-        selectedEvents.push({
-            id: selectedHoliday.id,
-            name: selectedHoliday.title,
-            date: selectedHoliday.summary,
-            tone: 'holiday',
-            highlighted: false,
-        });
-    }
-
-    if (selectedEvents.length) {
-        return selectedEvents;
-    }
-
+function buildFallbackUpcomingItems(activeFilter) {
     const events = eventRecords
         .filter((event) => activeFilter === 'all' || activeFilter === event.type)
         .map((event) => ({
@@ -314,6 +271,76 @@ export function buildUpcomingItems(activeFilter, selectedDateKey) {
     }
 
     return events.slice(0, 5);
+}
+
+function getCalendarData(activeFilter) {
+    if (calendarDataCache.has(activeFilter)) {
+        return calendarDataCache.get(activeFilter);
+    }
+
+    const eventMap = buildEventMap(activeFilter);
+    const holidayMap = buildHolidayMap(activeFilter);
+    const visibleEvents = eventRecords.filter((event) => activeFilter === 'all' || activeFilter === event.type);
+    const value = {
+        eventMap,
+        fallbackUpcomingItems: buildFallbackUpcomingItems(activeFilter),
+        holidayMap,
+        visibleEvents,
+    };
+
+    calendarDataCache.set(activeFilter, value);
+    return value;
+}
+
+export function buildMonthCells(monthDate, selectedDateKey, activeFilter) {
+    const firstDayOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+    const gridStart = addDays(firstDayOfMonth, -firstDayOfMonth.getDay());
+    const { eventMap, holidayMap } = getCalendarData(activeFilter);
+
+    return Array.from({ length: 42 }, (_, index) => {
+        const currentDate = addDays(gridStart, index);
+        const dateKey = formatDateKey(currentDate);
+        const holiday = holidayMap[dateKey];
+
+        return {
+            date: currentDate,
+            dateKey,
+            day: currentDate.getDate(),
+            muted: !sameMonth(currentDate, monthDate),
+            highlighted: dateKey === selectedDateKey,
+            events: eventMap[dateKey] ?? [],
+            holiday: holiday ? holiday.title : null,
+        };
+    });
+}
+
+export function buildUpcomingItems(activeFilter, selectedDateKey) {
+    const { eventMap, fallbackUpcomingItems, holidayMap } = getCalendarData(activeFilter);
+    const selectedEvents = (eventMap[selectedDateKey] ?? []).map((event) => ({
+        id: event.id,
+        name: event.title,
+        date: event.summary,
+        tone: event.type,
+        highlighted: false,
+    }));
+
+    const selectedHoliday = holidayMap[selectedDateKey];
+
+    if (selectedHoliday) {
+        selectedEvents.push({
+            id: selectedHoliday.id,
+            name: selectedHoliday.title,
+            date: selectedHoliday.summary,
+            tone: 'holiday',
+            highlighted: false,
+        });
+    }
+
+    if (selectedEvents.length) {
+        return selectedEvents;
+    }
+
+    return fallbackUpcomingItems;
 }
 
 function getEventDateRange(event) {
@@ -428,7 +455,7 @@ function buildTimelineRequest(event, consultantName, consultantCode, eventIndex,
 export function buildTimelineRows(monthDate, activeFilter) {
     const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
     const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
-    const visibleEvents = eventRecords.filter((event) => activeFilter === 'all' || activeFilter === event.type);
+    const { visibleEvents } = getCalendarData(activeFilter);
     const rowMap = new Map();
 
     visibleEvents.forEach((event, eventIndex) => {
@@ -465,4 +492,41 @@ export function buildTimelineRows(monthDate, activeFilter) {
     });
 
     return [...rowMap.values()].sort((left, right) => left.name.localeCompare(right.name));
+}
+
+export function buildTimelineLayout(monthDate, activeFilter, dayWidth = DAY_WIDTH) {
+    const cacheKey = `${monthDate.getFullYear()}-${monthDate.getMonth()}-${activeFilter}-${dayWidth}`;
+
+    if (timelineLayoutCache.has(cacheKey)) {
+        return timelineLayoutCache.get(cacheKey);
+    }
+
+    const daysInMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).getDate();
+    const days = Array.from({ length: daysInMonth }, (_, index) => new Date(monthDate.getFullYear(), monthDate.getMonth(), index + 1));
+    const rows = buildTimelineRows(monthDate, activeFilter).map((row) => ({
+        ...row,
+        positionedEvents: row.events.map((item) => {
+            const startDate = parseDateKey(item.startDateKey);
+            const endDate = parseDateKey(item.endDateKey);
+            const visibleStart = startDate < days[0] ? days[0] : startDate;
+            const visibleEnd = endDate > days[days.length - 1] ? days[days.length - 1] : endDate;
+            const startOffset = visibleStart.getDate() - 1;
+            const spanDays = visibleEnd.getDate() - visibleStart.getDate() + 1;
+
+            return {
+                ...item,
+                left: startOffset * dayWidth,
+                width: Math.max(spanDays * dayWidth - 6, 50),
+            };
+        }),
+    }));
+
+    const value = {
+        days,
+        rows,
+        trackWidth: days.length * dayWidth,
+    };
+
+    timelineLayoutCache.set(cacheKey, value);
+    return value;
 }

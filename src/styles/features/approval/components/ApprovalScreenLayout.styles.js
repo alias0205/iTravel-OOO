@@ -58,6 +58,9 @@ const styles = StyleSheet.create({
     scrollContent: {
         paddingBottom: 18,
     },
+    contentBody: {
+        flex: 1,
+    },
 });
 
 export { styles };

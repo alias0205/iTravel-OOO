@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useMemo, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { memo, useCallback, useMemo, useState } from 'react';
+import { FlatList, Pressable, Text, View } from 'react-native';
 
 import { ConsultantScreenLayout } from '../components/ConsultantScreenLayout';
 import { ConsultantNotificationsScreenStyles as styles } from '../../../styles';
@@ -8,8 +8,6 @@ import { ConsultantNotificationsScreenStyles as styles } from '../../../styles';
 const notificationTabs = [
     { key: 'all', label: 'All' },
     { key: 'unread', label: 'Unread' },
-    { key: 'requests', label: 'Requests' },
-    { key: 'approvals', label: 'Approvals' },
 ];
 
 const notifications = [
@@ -130,7 +128,19 @@ const notifications = [
     },
 ];
 
-function NotificationCard({ notification }) {
+const notificationsByTab = {
+    all: notifications,
+    unread: notifications.filter((notification) => notification.unread),
+};
+
+const tabCounts = {
+    all: notificationsByTab.all.length,
+    unread: notificationsByTab.unread.length,
+};
+
+const unreadCount = notificationsByTab.unread.length;
+
+const NotificationCard = memo(function NotificationCard({ notification }) {
     return (
         <View style={[styles.notificationCard, { borderLeftColor: notification.accent }]}>
             <View style={styles.notificationHeaderRow}>
@@ -167,47 +177,41 @@ function NotificationCard({ notification }) {
             </View>
         </View>
     );
-}
+});
 
 export function ConsultantNotificationsScreen({ navigation }) {
     const [activeTab, setActiveTab] = useState('all');
-
-    const tabCounts = useMemo(
-        () => ({
-            all: notifications.length,
-            unread: notifications.filter((notification) => notification.unread).length,
-            requests: notifications.filter((notification) => notification.category === 'requests').length,
-            approvals: notifications.filter((notification) => notification.category === 'approvals').length,
-        }),
-        []
-    );
-
-    const filteredNotifications = useMemo(() => {
-        if (activeTab === 'all') {
-            return notifications;
-        }
-
-        if (activeTab === 'unread') {
-            return notifications.filter((notification) => notification.unread);
-        }
-
-        return notifications.filter((notification) => notification.category === activeTab);
-    }, [activeTab]);
+    const filteredNotifications = useMemo(() => notificationsByTab[activeTab] || notificationsByTab.all, [activeTab]);
+    const renderNotificationItem = useCallback(({ item }) => <NotificationCard notification={item} />, []);
+    const keyExtractor = useCallback((item) => item.id, []);
 
     return (
         <ConsultantScreenLayout
             activeNavKey="notifications"
-            headerSubtitle="Stay updated with alerts and approvals"
+            headerRight={
+                <Pressable>
+                    <Text style={styles.headerAction}>Mark all read</Text>
+                </Pressable>
+            }
+            headerSubtitle="Stay updated with alerts"
             headerTitle="Notifications"
             navigation={navigation}
             notificationCount={3}
-            scrollContentStyle={styles.scrollContent}
             showBackButton
             showNotification={false}
+            useScrollView={false}
         >
             <View style={styles.tabRow}>
-                {notificationTabs.map((tab) => (
-                    <Pressable key={tab.key} onPress={() => setActiveTab(tab.key)} style={[styles.tabItem, activeTab === tab.key ? styles.tabItemActive : null]}>
+                {notificationTabs.map((tab, index) => (
+                    <Pressable
+                        key={tab.key}
+                        onPress={() => setActiveTab(tab.key)}
+                        style={[
+                            styles.tabItem,
+                            index < notificationTabs.length - 1 ? styles.tabItemSpacing : null,
+                            activeTab === tab.key ? styles.tabItemActive : null,
+                        ]}
+                    >
                         <Text style={[styles.tabLabel, activeTab === tab.key ? styles.tabLabelActive : null]}>{tab.label}</Text>
                         {tabCounts[tab.key] ? (
                             <View style={[styles.tabCountBadge, activeTab === tab.key ? styles.tabCountBadgeActive : null]}>
@@ -218,12 +222,25 @@ export function ConsultantNotificationsScreen({ navigation }) {
                 ))}
             </View>
 
-            <View style={styles.pagePadding}>
-                {filteredNotifications.map((notification) => (
-                    <NotificationCard key={notification.id} notification={notification} />
-                ))}
-                {filteredNotifications.length === 0 ? <Text style={styles.emptyState}>No notifications in this category.</Text> : null}
-            </View>
+            <FlatList
+                contentContainerStyle={[styles.pagePadding, styles.scrollContent]}
+                data={filteredNotifications}
+                extraData={activeTab}
+                keyExtractor={keyExtractor}
+                keyboardShouldPersistTaps="handled"
+                ListHeaderComponent={
+                    <View style={styles.subHeaderRow}>
+                        <Text style={styles.subHeaderText}>{unreadCount} unread notifications</Text>
+                        <Pressable>
+                            <Text style={styles.clearAllText}>Clear all</Text>
+                        </Pressable>
+                    </View>
+                }
+                ListEmptyComponent={<Text style={styles.emptyState}>No notifications in this category.</Text>}
+                renderItem={renderNotificationItem}
+                removeClippedSubviews
+                showsVerticalScrollIndicator={false}
+            />
         </ConsultantScreenLayout>
     );
 }
