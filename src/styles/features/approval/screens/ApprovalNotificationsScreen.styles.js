@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     loadMoreButton: {
         minHeight: 46,
         marginTop: 8,
-        marginBottom: 16,
+        // marginBottom: 16,
         borderRadius: 14,
         backgroundColor: '#0A6B63',
         alignItems: 'center',

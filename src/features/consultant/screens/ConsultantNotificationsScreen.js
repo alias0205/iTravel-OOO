@@ -1,176 +1,98 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { memo, useCallback, useMemo, useState } from 'react';
-import { FlatList, Pressable, Text, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, FlatList, Pressable, Text, View } from 'react-native';
 
 import { ConsultantScreenLayout } from '../components/ConsultantScreenLayout';
+import { useConsultantNotifications } from '../context/ConsultantNotificationsContext';
+import { fetchOutOfOfficeRequestById } from '../utils/outOfOfficeApi';
+import { useAuthSession } from '../../auth/context/AuthSessionContext';
+import { fetchApprovalNotifications } from '../../approval/utils/approvalNotificationsApi';
 import { ConsultantNotificationsScreenStyles as styles } from '../../../styles';
+import { usePaginatedCollection } from '../../../shared/hooks/usePaginatedCollection';
 
 const notificationTabs = [
     { key: 'all', label: 'All' },
     { key: 'unread', label: 'Unread' },
 ];
 
-const notifications = [
-    {
-        id: 'team-conflict',
-        title: 'Team Conflict Detected',
-        message: "Your leave request (Dec 18-20) overlaps with Tom Roberts' approved leave. Manager review required.",
-        time: '2h ago',
-        accent: '#EF4444',
-        dot: '#EF4444',
-        unread: true,
-        category: 'requests',
-        icon: 'alert',
-        iconColor: '#DC2626',
-        iconBackground: '#F7DADA',
-        primaryAction: 'View Details',
-        secondaryAction: 'Dismiss',
-    },
-    {
-        id: 'request-approved',
-        title: 'Request Approved',
-        message: 'Your vacation request for Jan 15-19, 2025 has been approved by Sarah Martinez.',
-        time: '5h ago',
-        accent: '#0F766E',
-        dot: '#0F766E',
-        unread: true,
-        category: 'approvals',
-        icon: 'check-circle',
-        iconColor: '#0F766E',
-        iconBackground: '#E5EFEF',
-        primaryAction: 'View Calendar',
-    },
-    {
-        id: 'upcoming-reminder',
-        title: 'Upcoming Leave Reminder',
-        message: "Your approved vacation starts in 3 days (Jan 15, 2025). Don't forget to set your out-of-office message.",
-        time: '1d ago',
-        accent: '#EAB308',
-        dot: '#D4A200',
-        unread: true,
-        category: 'approvals',
-        icon: 'clock',
-        iconColor: '#A16207',
-        iconBackground: '#F5E9AF',
-        primaryAction: 'Set OOO Message',
-        secondaryAction: 'Snooze',
-    },
-    {
-        id: 'request-submitted',
-        title: 'Request Submitted Successfully',
-        message: 'Your sick leave request for Dec 12, 2024 has been submitted and is pending manager approval.',
-        time: '2d ago',
-        accent: '#3B82F6',
-        dot: '#3B82F6',
-        unread: true,
-        category: 'requests',
-        icon: 'send',
-        iconColor: '#2563EB',
-        iconBackground: '#D9E6FB',
-        primaryAction: 'Track Status',
-    },
-    {
-        id: 'changes-requested',
-        title: 'Changes Requested',
-        message: 'Your manager requested changes to your leave request (Feb 10-14). Please review and update.',
-        time: '2d ago',
-        accent: '#F97316',
-        dot: '#F97316',
-        unread: true,
-        category: 'requests',
-        icon: 'pencil-box-outline',
-        iconColor: '#EA580C',
-        iconBackground: '#F7E1C7',
-        primaryAction: 'Review Request',
-    },
-    {
-        id: 'balance-update',
-        title: 'Leave Balance Update',
-        message: 'Your annual leave balance has been updated. You now have 18 days available for 2025.',
-        time: '3d ago',
-        accent: '#D1D5DB',
-        dot: null,
-        unread: false,
-        category: 'approvals',
-        icon: 'information',
-        iconColor: '#6B7280',
-        iconBackground: '#EFEFF1',
-        primaryAction: 'View Balance',
-        muted: true,
-    },
-    {
-        id: 'team-member-return',
-        title: 'Team Member Return',
-        message: 'Sarah Johnson returned from leave today. Welcome back message sent.',
-        time: '4d ago',
-        accent: '#D1D5DB',
-        dot: null,
-        unread: false,
-        category: 'approvals',
-        icon: 'calendar-check',
-        iconColor: '#4B5563',
-        iconBackground: '#EFEFF1',
-    },
-    {
-        id: 'policy-update',
-        title: 'Policy Update',
-        message: 'Company leave policy has been updated. Please review the new guidelines.',
-        time: '1w ago',
-        accent: '#D1D5DB',
-        dot: null,
-        unread: false,
-        category: 'approvals',
-        icon: 'bell',
-        iconColor: '#4B5563',
-        iconBackground: '#EFEFF1',
-        primaryAction: 'Read Policy',
-        muted: true,
-    },
-];
+const PAGE_SIZE = 15;
 
-const notificationsByTab = {
-    all: notifications,
-    unread: notifications.filter((notification) => notification.unread),
-};
+function getNotificationAppearance(notification) {
+    if (notification.type === 'out_of_office_approved') {
+        return {
+            accent: '#0F766E',
+            actionLabel: notification.actionLabel || 'View Request',
+            dot: '#0F766E',
+            icon: 'check-circle',
+            iconBackground: '#E5EFEF',
+            iconColor: '#0F766E',
+            muted: false,
+        };
+    }
 
-const tabCounts = {
-    all: notificationsByTab.all.length,
-    unread: notificationsByTab.unread.length,
-};
+    if (notification.type === 'out_of_office_rejected') {
+        return {
+            accent: '#DC2626',
+            actionLabel: notification.actionLabel || 'View Request',
+            dot: '#DC2626',
+            icon: 'close-circle',
+            iconBackground: '#F7DADA',
+            iconColor: '#DC2626',
+            muted: false,
+        };
+    }
 
-const unreadCount = notificationsByTab.unread.length;
+    if (notification.category === 'requests') {
+        return {
+            accent: '#3B82F6',
+            actionLabel: notification.actionLabel || 'View Request',
+            dot: '#3B82F6',
+            icon: 'send',
+            iconBackground: '#D9E6FB',
+            iconColor: '#2563EB',
+            muted: false,
+        };
+    }
 
-const NotificationCard = memo(function NotificationCard({ notification }) {
+    return {
+        accent: notification.unread ? '#0A6B63' : '#D1D5DB',
+        actionLabel: notification.actionLabel || 'View Request',
+        dot: notification.unread ? '#0A6B63' : null,
+        icon: notification.unread ? 'bell-ring-outline' : 'information',
+        iconBackground: notification.unread ? '#D9F1EA' : '#EFEFF1',
+        iconColor: notification.unread ? '#0A6B63' : '#6B7280',
+        muted: !notification.unread,
+    };
+}
+
+const NotificationCard = memo(function NotificationCard({ notification, onActionPress }) {
+    const appearance = getNotificationAppearance(notification);
+
     return (
-        <View style={[styles.notificationCard, { borderLeftColor: notification.accent }]}>
+        <View style={[styles.notificationCard, { borderLeftColor: appearance.accent }]}>
             <View style={styles.notificationHeaderRow}>
-                <View style={[styles.notificationIconWrap, { backgroundColor: notification.iconBackground }]}>
-                    <MaterialCommunityIcons color={notification.iconColor} name={notification.icon} size={20} />
+                <View style={[styles.notificationIconWrap, { backgroundColor: appearance.iconBackground }]}>
+                    <MaterialCommunityIcons color={appearance.iconColor} name={appearance.icon} size={20} />
                 </View>
 
                 <View style={styles.notificationCopy}>
                     <View style={styles.notificationTitleRow}>
                         <Text style={styles.notificationTitle}>{notification.title}</Text>
-                        <View style={styles.notificationMetaRow}>
-                            <Text style={styles.notificationTime}>{notification.time}</Text>
-                            {notification.dot ? <View style={[styles.notificationDot, { backgroundColor: notification.dot }]} /> : null}
-                        </View>
+                        {appearance.dot ? <View style={[styles.notificationDot, { backgroundColor: appearance.dot }]} /> : null}
                     </View>
 
                     <Text style={styles.notificationMessage}>{notification.message}</Text>
 
-                    {notification.primaryAction ? (
+                    {appearance.actionLabel ? (
                         <View style={styles.notificationActionRow}>
-                            <Pressable style={[styles.actionButton, notification.muted ? styles.actionButtonMuted : styles.actionButtonPrimary]}>
-                                <Text style={[styles.actionButtonText, notification.muted ? styles.actionButtonTextMuted : styles.actionButtonTextPrimary]}>
-                                    {notification.primaryAction}
+                            <Pressable onPress={() => onActionPress(notification)} style={[styles.actionButton, appearance.muted ? styles.actionButtonMuted : styles.actionButtonPrimary]}>
+                                <Text style={[styles.actionButtonText, appearance.muted ? styles.actionButtonTextMuted : styles.actionButtonTextPrimary]}>
+                                    {appearance.actionLabel}
                                 </Text>
                             </Pressable>
-                            {notification.secondaryAction ? (
-                                <Pressable style={[styles.actionButton, styles.actionButtonMuted, styles.secondaryButton]}>
-                                    <Text style={[styles.actionButtonText, styles.actionButtonTextMuted]}>{notification.secondaryAction}</Text>
-                                </Pressable>
-                            ) : null}
+
+                            <Text style={styles.notificationTime}>{notification.time}</Text>
                         </View>
                     ) : null}
                 </View>
@@ -180,23 +102,187 @@ const NotificationCard = memo(function NotificationCard({ notification }) {
 });
 
 export function ConsultantNotificationsScreen({ navigation }) {
+    const { session, signOut } = useAuthSession();
+    const { isRefreshing: isBadgeRefreshing, markAllRead, markAsRead, refresh: refreshUnreadCount, unreadCount } = useConsultantNotifications();
     const [activeTab, setActiveTab] = useState('all');
-    const filteredNotifications = useMemo(() => notificationsByTab[activeTab] || notificationsByTab.all, [activeTab]);
-    const renderNotificationItem = useCallback(({ item }) => <NotificationCard notification={item} />, []);
+    const previousUnreadCountRef = useRef(unreadCount);
+
+    const handleUnauthorized = useCallback(async () => {
+        await signOut();
+        navigation.reset({ index: 0, routes: [{ name: 'Splash' }] });
+    }, [navigation, signOut]);
+
+    const loadCounts = useCallback(async () => {
+        const result = await fetchApprovalNotifications({
+            filter: 'all',
+            limit: 1,
+            page: 1,
+            token: session?.token,
+        });
+
+        return {
+            all: result.meta.total,
+            unread: result.meta.unreadCount,
+        };
+    }, [session?.token]);
+
+    const loadPage = useCallback(
+        ({ activeTab: nextTab, page }) =>
+            fetchApprovalNotifications({
+                filter: nextTab,
+                limit: PAGE_SIZE,
+                page,
+                token: session?.token,
+            }),
+        [session?.token]
+    );
+
+    const {
+        isLoading,
+        isLoadingMore,
+        items: notifications,
+        loadError,
+        loadMore,
+        pagination,
+        refresh,
+        setItems: setNotifications,
+        tabCounts,
+    } = usePaginatedCollection({
+        activeTab,
+        initialCounts: { all: 0, unread: 0 },
+        loadCounts,
+        loadPage,
+        onUnauthorized: handleUnauthorized,
+    });
+
+    useFocusEffect(
+        useCallback(() => {
+            refresh();
+        }, [refresh])
+    );
+
+    useEffect(() => {
+        if (previousUnreadCountRef.current === unreadCount) {
+            return;
+        }
+
+        previousUnreadCountRef.current = unreadCount;
+
+        if (session?.token) {
+            refresh();
+        }
+    }, [refresh, session?.token, unreadCount]);
+
+    const handleActionPress = useCallback(
+        (item) => {
+            void (async () => {
+                try {
+                    if (item.unread) {
+                        await markAsRead(item.id);
+                        setNotifications((currentValue) =>
+                            currentValue.map((notification) =>
+                                notification.id === item.id ? { ...notification, unread: false, readAt: new Date().toISOString() } : notification
+                            )
+                        );
+                    }
+
+                    if (!item.holidayId) {
+                        return;
+                    }
+
+                    const request = await fetchOutOfOfficeRequestById({
+                        holidayId: item.holidayId,
+                        token: session?.token,
+                    });
+
+                    navigation.navigate('ConsultantRequestDetail', { request });
+                } catch (error) {
+                    const message = error instanceof Error ? error.message : 'Unable to open this notification right now.';
+
+                    if (error?.status === 401) {
+                        await signOut();
+                        navigation.reset({
+                            index: 0,
+                            routes: [{ name: 'Splash' }],
+                        });
+                        return;
+                    }
+
+                    Alert.alert('Notification Unavailable', message);
+                }
+            })();
+        },
+        [markAsRead, navigation, session?.token, setNotifications, signOut]
+    );
+
+    const handleMarkAllRead = useCallback(() => {
+        void (async () => {
+            try {
+                await markAllRead();
+                setNotifications((currentValue) => currentValue.map((notification) => ({ ...notification, unread: false, readAt: notification.readAt || new Date().toISOString() })));
+                void refreshUnreadCount({ silent: true });
+                refresh();
+            } catch (error) {
+                const message = error instanceof Error ? error.message : 'Unable to mark all notifications as read.';
+                Alert.alert('Action Failed', message);
+            }
+        })();
+    }, [markAllRead, refresh, refreshUnreadCount, setNotifications]);
+
+    const handleLoadMore = useCallback(() => {
+        void (async () => {
+            const result = await loadMore();
+
+            if (!result.ok && result.reason === 'error') {
+                Alert.alert('Load More Failed', result.message || 'Unable to load more notifications right now.');
+            }
+        })();
+    }, [loadMore]);
+
+    const renderNotificationItem = useCallback(({ item }) => <NotificationCard notification={item} onActionPress={handleActionPress} />, [handleActionPress]);
     const keyExtractor = useCallback((item) => item.id, []);
+    const listEmptyState = isLoading || isBadgeRefreshing ? 'Loading notifications...' : loadError || 'No notifications in this category.';
+    const showLoadMoreButton = pagination.currentPage < pagination.lastPage && notifications.length > 0;
+
+    const listHeader = useMemo(
+        () => (
+            <View style={styles.subHeaderRow}>
+                <Text style={styles.subHeaderText}>{unreadCount} unread notifications</Text>
+                <Pressable onPress={handleMarkAllRead}>
+                    <Text style={styles.clearAllText}>Clear all</Text>
+                </Pressable>
+            </View>
+        ),
+        [handleMarkAllRead, unreadCount]
+    );
+
+    const listFooter = useMemo(
+        () =>
+            showLoadMoreButton ? (
+                <Pressable
+                    disabled={isLoadingMore}
+                    onPress={handleLoadMore}
+                    style={[styles.loadMoreButton, isLoadingMore ? styles.loadMoreButtonDisabled : null]}
+                >
+                    <Text style={styles.loadMoreButtonText}>{isLoadingMore ? 'Loading...' : 'Load more'}</Text>
+                </Pressable>
+            ) : null,
+        [handleLoadMore, isLoadingMore, showLoadMoreButton]
+    );
+
+    const listEmptyComponent = useMemo(() => <Text style={styles.emptyState}>{listEmptyState}</Text>, [listEmptyState]);
 
     return (
         <ConsultantScreenLayout
             activeNavKey="notifications"
             headerRight={
-                <Pressable>
+                <Pressable onPress={handleMarkAllRead}>
                     <Text style={styles.headerAction}>Mark all read</Text>
                 </Pressable>
             }
             headerSubtitle="Stay updated with alerts"
             headerTitle="Notifications"
             navigation={navigation}
-            notificationCount={3}
             showBackButton
             showNotification={false}
             useScrollView={false}
@@ -224,19 +310,13 @@ export function ConsultantNotificationsScreen({ navigation }) {
 
             <FlatList
                 contentContainerStyle={[styles.pagePadding, styles.scrollContent]}
-                data={filteredNotifications}
+                data={notifications}
                 extraData={activeTab}
                 keyExtractor={keyExtractor}
                 keyboardShouldPersistTaps="handled"
-                ListHeaderComponent={
-                    <View style={styles.subHeaderRow}>
-                        <Text style={styles.subHeaderText}>{unreadCount} unread notifications</Text>
-                        <Pressable>
-                            <Text style={styles.clearAllText}>Clear all</Text>
-                        </Pressable>
-                    </View>
-                }
-                ListEmptyComponent={<Text style={styles.emptyState}>No notifications in this category.</Text>}
+                ListEmptyComponent={listEmptyComponent}
+                ListFooterComponent={listFooter}
+                ListHeaderComponent={listHeader}
                 renderItem={renderNotificationItem}
                 removeClippedSubviews
                 showsVerticalScrollIndicator={false}

@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     },
     notificationTitleRow: {
         flexDirection: 'row',
-        alignItems: 'flex-start',
+        alignItems: 'center',
         justifyContent: 'space-between',
         marginBottom: 6,
     },
@@ -159,6 +159,7 @@ const styles = StyleSheet.create({
     notificationActionRow: {
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'space-between',
     },
     actionButton: {
         minHeight: 34,
@@ -186,6 +187,24 @@ const styles = StyleSheet.create({
     },
     actionButtonTextMuted: {
         color: '#4B5563',
+    },
+    loadMoreButton: {
+        minHeight: 46,
+        marginTop: 8,
+        // marginBottom: 16,
+        borderRadius: 14,
+        backgroundColor: '#0A6B63',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    loadMoreButtonDisabled: {
+        backgroundColor: '#7AA8A3',
+    },
+    loadMoreButtonText: {
+        color: '#FFFFFF',
+        fontSize: 15,
+        lineHeight: 20,
+        fontWeight: '800',
     },
 });
 

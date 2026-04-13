@@ -441,7 +441,7 @@ export function ConsultantNewRequestScreen({ navigation, route }) {
 
                 Alert.alert(
                     isEditMode ? 'Request Updated' : 'Request Submitted',
-                    isEditMode ? 'Your out of office request has been updated successfully.' : 'Your out of office request has been created successfully.',
+                    isEditMode ? 'Your OOO request has been updated successfully.' : 'Your OOO request has been created successfully.',
                     [
                         {
                             text: 'OK',

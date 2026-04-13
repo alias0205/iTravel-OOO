@@ -3,6 +3,7 @@ import { ScrollView, Text, View, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuthSession } from '../../auth/context/AuthSessionContext';
+import { useConsultantNotifications } from '../context/ConsultantNotificationsContext';
 import { DashboardBottomNav } from '../../../shared/components/dashboard/DashboardBottomNav';
 import { DashboardTopBar } from '../../../shared/components/dashboard/DashboardTopBar';
 import { ConsultantScreenLayoutStyles as styles } from '../../../styles';
@@ -60,10 +61,12 @@ export function ConsultantScreenLayout({
     useScrollView = true,
 }) {
     const { authProfile, signOut } = useAuthSession();
+    const { unreadCount } = useConsultantNotifications();
+    const resolvedNotificationCount = unreadCount;
 
     const navItems = consultantNavItems.map((item) => ({
         ...item,
-        badge: item.key === 'notifications' && notificationCount ? notificationCount : undefined,
+        badge: item.key === 'notifications' && resolvedNotificationCount ? resolvedNotificationCount : undefined,
     }));
 
     const handleNavPress = (item) => {
@@ -93,7 +96,7 @@ export function ConsultantScreenLayout({
                 avatarLabel={authProfile?.initials ?? 'SC'}
                 avatarSource={authProfile?.avatarSource}
                 leftIconName="menu"
-                notificationCount={notificationCount}
+                notificationCount={resolvedNotificationCount}
                 onNotificationPress={() => navigation?.navigate('ConsultantNotifications')}
                 onSidebarSignOut={handleSidebarSignOut}
                 sidebarProfileMeta={`${authProfile?.title ?? 'Consultant'}${authProfile?.department ? `, ${authProfile.department}` : ''}`}

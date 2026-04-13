@@ -470,6 +470,23 @@ export async function fetchOutOfOfficeRequests({ page = 1, perPage = 15, status,
     };
 }
 
+export async function fetchOutOfOfficeRequestById({ holidayId, token }) {
+    const { ok, payload, status } = await apiRequest(`${CREATE_OUT_OF_OFFICE_ENDPOINT}/${holidayId}`, {
+        method: 'GET',
+        requiresAuth: true,
+        token,
+    });
+
+    if (!ok) {
+        const error = new Error(payload?.message || 'Unable to load this request right now.');
+        error.status = status;
+        error.payload = payload;
+        throw error;
+    }
+
+    return normalizeOutOfOfficeRequest(payload?.data || payload);
+}
+
 export async function fetchOutOfOfficeRequestCounts({ perPage = 1, token }) {
     const statuses = ['all', 'pending', 'approved', 'rejected'];
     const entries = await Promise.all(
