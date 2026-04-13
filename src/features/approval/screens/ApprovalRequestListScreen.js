@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { Alert, FlatList, Pressable, ScrollView, Text, View } from 'react-native';
 
@@ -17,6 +17,61 @@ const requestTabs = [
     { key: 'rejected', label: 'Reject' },
     { key: 'by-me', label: 'By Me' },
 ];
+
+const ApprovalRequestListItem = memo(function ApprovalRequestListItem({ currentUserEmail, currentUserName, item, onApprove, onOpen }) {
+    const reviewerLabel = useMemo(() => {
+        if (!(item.statusTone === 'approved' || item.statusTone === 'rejected') || !item.reviewerName) {
+            return '';
+        }
+
+        const reviewerEmail = item.reviewerEmail?.trim()?.toLowerCase() || '';
+        const reviewerName = item.reviewerName?.trim()?.toLowerCase() || '';
+        const isCurrentReviewer =
+            (currentUserEmail && reviewerEmail && currentUserEmail === reviewerEmail) || (currentUserName && reviewerName && currentUserName === reviewerName);
+
+        return isCurrentReviewer ? 'by me' : `by ${item.reviewerName}`;
+    }, [currentUserEmail, currentUserName, item]);
+
+    const handleApprovePress = useCallback(() => {
+        onApprove(item);
+    }, [item, onApprove]);
+
+    const handleOpenPress = useCallback(() => {
+        onOpen(item);
+    }, [item, onOpen]);
+
+    return (
+        <ApprovalRequestCard
+            avatarLabel={item.avatarLabel}
+            avatarSource={item.avatarSource}
+            dateRange={item.dateRange}
+            duration={item.duration}
+            leaveLabel={item.leaveLabel}
+            leaveToneKey={item.leaveToneKey}
+            name={item.name}
+            onApprovePress={handleApprovePress}
+            onPress={handleOpenPress}
+            onReviewPress={handleOpenPress}
+            reviewerLabel={reviewerLabel}
+            role={item.role}
+            serverNow={item.serverNow}
+            statusLabel={item.statusLabel}
+            statusTone={item.statusTone}
+            submittedAt={item.raw?.created_at || item.submittedAt}
+        />
+    );
+}, areApprovalRequestListItemPropsEqual);
+
+function areApprovalRequestListItemPropsEqual(previousProps, nextProps) {
+    const previousItem = previousProps.item;
+    const nextItem = nextProps.item;
+
+    return (
+        previousProps.currentUserEmail === nextProps.currentUserEmail &&
+        previousProps.currentUserName === nextProps.currentUserName &&
+        previousItem === nextItem
+    );
+}
 
 export function ApprovalRequestListScreen({ navigation, route }) {
     const { authProfile, session, signOut, user } = useAuthSession();
@@ -86,43 +141,31 @@ export function ApprovalRequestListScreen({ navigation, route }) {
         })();
     }, [loadMore]);
 
-    const getReviewerLabel = (request) => {
-        if (!(request.statusTone === 'approved' || request.statusTone === 'rejected') || !request.reviewerName) {
-            return '';
-        }
+    const currentUserEmail = authProfile?.email?.trim()?.toLowerCase() || '';
+    const currentUserName = authProfile?.fullName?.trim()?.toLowerCase() || '';
 
-        const currentUserEmail = authProfile?.email?.trim()?.toLowerCase() || '';
-        const reviewerEmail = request.reviewerEmail?.trim()?.toLowerCase() || '';
-        const currentUserName = authProfile?.fullName?.trim()?.toLowerCase() || '';
-        const reviewerName = request.reviewerName?.trim()?.toLowerCase() || '';
-        const isCurrentReviewer =
-            (currentUserEmail && reviewerEmail && currentUserEmail === reviewerEmail) || (currentUserName && reviewerName && currentUserName === reviewerName);
+    const handleOpenRequest = useCallback(
+        (request) => {
+            navigation.navigate('ApprovalRequestReview', { request });
+        },
+        [navigation]
+    );
 
-        return isCurrentReviewer ? 'by me' : `by ${request.reviewerName}`;
-    };
+    const handleQueueApprove = useCallback((request) => {
+        setPendingApprovalRequest(request);
+    }, []);
 
     const renderRequestItem = useCallback(
         ({ item }) => (
-            <ApprovalRequestCard
-                avatarLabel={item.avatarLabel}
-                avatarSource={item.avatarSource}
-                dateRange={item.dateRange}
-                duration={item.duration}
-                leaveLabel={item.leaveLabel}
-                leaveToneKey={item.leaveToneKey}
-                name={item.name}
-                onApprovePress={() => setPendingApprovalRequest(item)}
-                onPress={() => navigation.navigate('ApprovalRequestReview', { request: item })}
-                onReviewPress={() => navigation.navigate('ApprovalRequestReview', { request: item })}
-                reviewerLabel={getReviewerLabel(item)}
-                role={item.role}
-                serverNow={item.serverNow}
-                statusLabel={item.statusLabel}
-                statusTone={item.statusTone}
-                submittedAt={item.raw?.created_at || item.submittedAt}
+            <ApprovalRequestListItem
+                currentUserEmail={currentUserEmail}
+                currentUserName={currentUserName}
+                item={item}
+                onApprove={handleQueueApprove}
+                onOpen={handleOpenRequest}
             />
         ),
-        [authProfile?.email, authProfile?.fullName, navigation]
+        [currentUserEmail, currentUserName, handleOpenRequest, handleQueueApprove]
     );
 
     const keyExtractor = useCallback((item) => item.id, []);
@@ -175,17 +218,18 @@ export function ApprovalRequestListScreen({ navigation, route }) {
                     <FlatList
                         contentContainerStyle={[styles.pagePadding, styles.scrollContent]}
                         data={requests}
-                        initialNumToRender={8}
+                        initialNumToRender={6}
                         keyExtractor={keyExtractor}
                         keyboardShouldPersistTaps="handled"
                         ListEmptyComponent={listEmptyComponent}
                         ListFooterComponent={listFooter}
-                        maxToRenderPerBatch={8}
+                        maxToRenderPerBatch={4}
                         removeClippedSubviews
                         renderItem={renderRequestItem}
                         showsVerticalScrollIndicator={false}
                         style={styles.list}
-                        windowSize={7}
+                        updateCellsBatchingPeriod={60}
+                        windowSize={5}
                     />
                 )}
             </ApprovalScreenLayout>
