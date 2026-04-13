@@ -1,8 +1,14 @@
-import { memo, useCallback, useMemo, useState } from 'react';
-import { FlatList, Pressable, Text, View } from 'react-native';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { Alert, FlatList, Pressable, Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { ApprovalScreenLayout } from '../components/ApprovalScreenLayout';
+import { useApprovalNotifications } from '../context/ApprovalNotificationsContext';
+import { fetchApprovalNotifications } from '../utils/approvalNotificationsApi';
+import { fetchApprovalRequestById } from '../utils/approvalRequestsApi';
+import { useAuthSession } from '../../auth/context/AuthSessionContext';
+import { usePaginatedCollection } from '../../../shared/hooks/usePaginatedCollection';
 import { ApprovalNotificationsScreenStyles as styles } from '../../../styles';
 
 const notificationTabs = [
@@ -10,275 +16,48 @@ const notificationTabs = [
     { key: 'unread', label: 'Unread' },
 ];
 
-const approvalNotifications = [
-    {
-        id: 'new-leave-request',
-        title: 'New Leave Request',
-        message: 'Sarah Johnson submitted an annual leave request for Dec 20-27, 2024',
-        time: '2 hours ago',
-        category: 'approvals',
-        unread: true,
-        accent: '#F97316',
-        dot: '#F97316',
-        icon: 'clock-time-three',
-        iconColor: '#EA580C',
-        iconBackground: '#F6E6D2',
-        actionLabel: 'Review',
-        request: {
-            id: 'sarah-johnson-annual',
-            avatarLabel: 'SJ',
-            name: 'Sarah Johnson',
-            role: 'Senior Marketing Specialist',
-            department: 'Marketing Department',
-            office: 'London Office',
-            manager: 'David Smith',
-            employeeId: 'MKT-2019-045',
-            leaveLabel: 'Annual Leave',
-            leaveToneKey: 'annual',
-            dateRange: 'Dec 20 - Dec 27, 2024',
-            duration: '8 days',
-            durationLabel: '8 business days',
-            submittedAt: 'Dec 15, 2024 at 2:30 PM',
-            reason: 'Family vacation to celebrate holidays. Planning to visit parents and extended family during Christmas week.',
-            attachmentName: 'flight-confirmation.pdf',
-            attachmentCountLabel: '1 file',
-            daysAvailable: '15',
-            daysRequested: '8',
-            daysRemaining: '7',
-            usedThisYear: '10',
-            annualLeaveUsage: '18/25 days',
-            annualLeaveUsagePercent: 72,
-            coverageAlert: 'No backup assigned for ongoing Christmas campaign project. Consider assigning coverage.',
-            teamMemberName: 'Mark Wilson',
-            teamMemberLeave: 'Dec 23-26 • Annual Leave',
-            dependencyTitle: 'Q4 Campaign Review',
-            dependencyDue: 'Due Dec 22',
-            policyNotice: 'This request falls during the holiday blackout period (Dec 20-27). Special approval may be required from HR.',
-        },
-    },
-    {
-        id: 'team-member-request',
-        title: 'Team Member Request',
-        message: 'Michael Chen requested sick leave for Dec 18-19, 2024',
-        time: '4 hours ago',
-        category: 'requests',
-        unread: true,
-        accent: '#3B82F6',
-        dot: '#3B82F6',
-        icon: 'account-plus',
-        iconColor: '#2563EB',
-        iconBackground: '#DCE8FA',
-        actionLabel: 'View',
-        request: {
-            id: 'michael-chen-sick',
-            avatarLabel: 'MC',
-            name: 'Michael Chen',
-            role: 'Software Engineer II',
-            department: 'Engineering',
-            office: 'Singapore Office',
-            manager: 'Priya Kapoor',
-            employeeId: 'ENG-2021-118',
-            leaveLabel: 'Sick Leave',
-            leaveToneKey: 'sick',
-            dateRange: 'Dec 18 - Dec 19, 2024',
-            duration: '2 days',
-            durationLabel: '2 business days',
-            submittedAt: 'Dec 17, 2024 at 8:10 AM',
-            reason: 'Medical recovery time requested after outpatient treatment.',
-            attachmentName: 'medical-note.pdf',
-            attachmentCountLabel: '1 file',
-            daysAvailable: '10',
-            daysRequested: '2',
-            daysRemaining: '8',
-            usedThisYear: '4',
-            annualLeaveUsage: '4/12 days',
-            annualLeaveUsagePercent: 33,
-            coverageAlert: 'Sprint QA sign-off needs reassignment for the release branch.',
-            teamMemberName: 'Alyssa Tan',
-            teamMemberLeave: 'Dec 18-18 • Remote Work',
-            dependencyTitle: 'Release Candidate QA',
-            dependencyDue: 'Due Dec 19',
-            policyNotice: 'Sick leave over one day may require HR verification within 48 hours.',
-        },
-    },
-    {
-        id: 'request-approved',
-        title: 'Request Approved',
-        message: "Your approval for Emily Rodriguez's business trip has been processed",
-        time: '6 hours ago',
-        category: 'approvals',
-        unread: false,
-        accent: '#22C55E',
-        dot: null,
-        icon: 'check',
-        iconColor: '#16A34A',
-        iconBackground: '#D7EEDD',
-        actionLabel: 'Details',
-    },
-    {
-        id: 'policy-alert',
-        title: 'Policy Alert',
-        message: "David Kumar's remote work request conflicts with team meeting schedule",
-        time: '8 hours ago',
-        category: 'approvals',
-        unread: true,
-        accent: '#A855F7',
-        dot: '#A855F7',
-        icon: 'alert',
-        iconColor: '#9333EA',
-        iconBackground: '#E8DDF8',
-        actionLabel: 'Resolve',
-        request: {
-            id: 'david-kumar-remote',
-            avatarLabel: 'DK',
-            name: 'David Kumar',
-            role: 'Finance Analyst',
-            department: 'Finance',
-            office: 'Dubai Office',
-            manager: 'Leila Hassan',
-            employeeId: 'FIN-2020-084',
-            leaveLabel: 'Remote Work',
-            leaveToneKey: 'remote',
-            dateRange: 'Dec 21 - Dec 23, 2024',
-            duration: '3 days',
-            durationLabel: '3 business days',
-            submittedAt: 'Dec 14, 2024 at 4:05 PM',
-            reason: 'Remote support requested while assisting family relocation logistics.',
-            attachmentName: 'connectivity-plan.pdf',
-            attachmentCountLabel: '1 file',
-            daysAvailable: 'N/A',
-            daysRequested: '3',
-            daysRemaining: 'N/A',
-            usedThisYear: '12',
-            annualLeaveUsage: '12 remote days used',
-            annualLeaveUsagePercent: 60,
-            coverageAlert: 'Remote work request overlaps with on-site budget review meeting.',
-            teamMemberName: 'Nadia Rahman',
-            teamMemberLeave: 'Dec 22-23 • Annual Leave',
-            dependencyTitle: 'Budget Review Workshop',
-            dependencyDue: 'Due Dec 23',
-            policyNotice: 'On-site attendance may still be required for executive finance reviews.',
-        },
-    },
-    {
-        id: 'urgent-coverage',
-        title: 'Urgent: Coverage Needed',
-        message: "Jessica Lee's leave request requires immediate coverage assignment",
-        time: '12 hours ago',
-        category: 'requests',
-        unread: true,
-        accent: '#EF4444',
-        dot: '#EF4444',
-        icon: 'clock-alert',
-        iconColor: '#DC2626',
-        iconBackground: '#F4DADC',
-        actionLabel: 'Assign',
-        request: {
-            id: 'jessica-lee-annual',
-            avatarLabel: 'JL',
-            name: 'Jessica Lee',
-            role: 'HR Business Partner',
-            department: 'HR Department',
-            office: 'Toronto Office',
-            manager: 'Monica Reed',
-            employeeId: 'HR-2017-029',
-            leaveLabel: 'Annual Leave',
-            leaveToneKey: 'annual',
-            dateRange: 'Jan 02 - Jan 05, 2025',
-            duration: '4 days',
-            durationLabel: '4 business days',
-            submittedAt: 'Dec 13, 2024 at 11:20 AM',
-            reason: 'Planned family visit following year-end onboarding closeout.',
-            attachmentName: 'coverage-handoff.docx',
-            attachmentCountLabel: '1 file',
-            daysAvailable: '11',
-            daysRequested: '4',
-            daysRemaining: '7',
-            usedThisYear: '14',
-            annualLeaveUsage: '14/18 days',
-            annualLeaveUsagePercent: 78,
-            coverageAlert: 'New hire onboarding queue needs ownership during absence.',
-            teamMemberName: 'Paul Bennett',
-            teamMemberLeave: 'Jan 03-03 • Conference',
-            dependencyTitle: 'January Onboarding Wave',
-            dependencyDue: 'Due Jan 04',
-            policyNotice: 'HR coverage must be confirmed before multi-day annual leave is approved.',
-        },
-    },
-    {
-        id: 'system-update',
-        title: 'System Update',
-        message: 'Leave balance calculations have been updated for Q4 2024',
-        time: '1 day ago',
-        category: 'all',
-        unread: false,
-        accent: '#D1D5DB',
-        dot: null,
-        icon: 'information',
-        iconColor: '#4B5563',
-        iconBackground: '#ECEEF2',
-        actionLabel: 'Info',
-    },
-    {
-        id: 'holiday-schedule',
-        title: 'Holiday Schedule',
-        message: 'Company holiday calendar updated with 2025 dates',
-        time: '2 days ago',
-        category: 'all',
-        unread: false,
-        accent: '#D1D5DB',
-        dot: null,
-        icon: 'calendar',
-        iconColor: '#4B5563',
-        iconBackground: '#ECEEF2',
-        actionLabel: 'View',
-    },
-    {
-        id: 'monthly-reminder',
-        title: 'Reminder',
-        message: 'Monthly consuldant leave report due by end of week',
-        time: '3 days ago',
-        category: 'all',
-        unread: false,
-        accent: '#D1D5DB',
-        dot: null,
-        icon: 'bell-ring',
-        iconColor: '#4B5563',
-        iconBackground: '#ECEEF2',
-        actionLabel: 'Generate',
-    },
-];
+const PAGE_SIZE = 15;
 
-const notificationsByTab = {
-    all: approvalNotifications,
-    unread: approvalNotifications.filter((item) => item.unread),
-};
+function getNotificationAppearance(notification) {
+    if (notification.category === 'requests') {
+        return {
+            accent: '#F97316',
+            actionLabel: notification.actionLabel || 'Review',
+            icon: 'clipboard-text-clock-outline',
+            iconBackground: '#F6E6D2',
+            iconColor: '#EA580C',
+        };
+    }
 
-const tabCounts = {
-    all: notificationsByTab.all.length,
-    unread: notificationsByTab.unread.length,
-};
-
-const unreadCount = approvalNotifications.reduce((count, item) => count + (item.unread ? 1 : 0), 0);
+    return {
+        accent: notification.unread ? '#3B82F6' : '#D1D5DB',
+        actionLabel: notification.actionLabel || 'View',
+        icon: notification.unread ? 'bell-ring-outline' : 'information-outline',
+        iconBackground: notification.unread ? '#DCE8FA' : '#ECEEF2',
+        iconColor: notification.unread ? '#2563EB' : '#4B5563',
+    };
+}
 
 const ApprovalNotificationCard = memo(function ApprovalNotificationCard({ item, onActionPress }) {
+    const appearance = getNotificationAppearance(item);
+
     return (
-        <View style={[styles.notificationCard, { borderLeftColor: item.accent }]}>
+        <View style={[styles.notificationCard, { borderLeftColor: appearance.accent }]}>
             <View style={styles.notificationRow}>
-                <View style={[styles.notificationIconWrap, { backgroundColor: item.iconBackground }]}>
-                    <MaterialCommunityIcons color={item.iconColor} name={item.icon} size={18} />
+                <View style={[styles.notificationIconWrap, { backgroundColor: appearance.iconBackground }]}>
+                    <MaterialCommunityIcons color={appearance.iconColor} name={appearance.icon} size={18} />
                 </View>
 
                 <View style={styles.notificationCopy}>
                     <View style={styles.notificationTitleRow}>
                         <Text style={styles.notificationTitle}>{item.title}</Text>
-                        {item.dot ? <View style={[styles.notificationDot, { backgroundColor: item.dot }]} /> : null}
+                        {item.unread ? <View style={[styles.notificationDot, { backgroundColor: appearance.accent }]} /> : null}
                     </View>
                     <Text style={styles.notificationMessage}>{item.message}</Text>
                     <View style={styles.notificationFooterRow}>
                         <Text style={styles.notificationTime}>{item.time}</Text>
-                        <Pressable onPress={onActionPress}>
-                            <Text style={styles.notificationAction}>{item.actionLabel}</Text>
+                        <Pressable onPress={() => onActionPress(item)}>
+                            <Text style={styles.notificationAction}>{appearance.actionLabel}</Text>
                         </Pressable>
                     </View>
                 </View>
@@ -288,24 +67,175 @@ const ApprovalNotificationCard = memo(function ApprovalNotificationCard({ item, 
 });
 
 export function ApprovalNotificationsScreen({ navigation }) {
+    const { session, signOut } = useAuthSession();
+    const { isRefreshing: isBadgeRefreshing, markAllRead, markAsRead, refresh: refreshUnreadCount, unreadCount } = useApprovalNotifications();
     const [activeTab, setActiveTab] = useState('all');
-    const filteredNotifications = useMemo(() => notificationsByTab[activeTab] || notificationsByTab.all, [activeTab]);
+    const previousUnreadCountRef = useRef(unreadCount);
+
+    const handleUnauthorized = useCallback(async () => {
+        await signOut();
+        navigation.reset({ index: 0, routes: [{ name: 'Splash' }] });
+    }, [navigation, signOut]);
+
+    const loadCounts = useCallback(async () => {
+        const result = await fetchApprovalNotifications({
+            filter: 'all',
+            limit: 1,
+            page: 1,
+            token: session?.token,
+        });
+
+        return {
+            all: result.meta.total,
+            unread: result.meta.unreadCount,
+        };
+    }, [session?.token]);
+
+    const loadPage = useCallback(
+        ({ activeTab: nextTab, page }) =>
+            fetchApprovalNotifications({
+                filter: nextTab,
+                limit: PAGE_SIZE,
+                page,
+                token: session?.token,
+            }),
+        [session?.token]
+    );
+
+    const {
+        isLoading,
+        isLoadingMore,
+        items: notifications,
+        loadError,
+        loadMore,
+        pagination,
+        refresh,
+        setItems: setNotifications,
+        tabCounts,
+    } = usePaginatedCollection({
+        activeTab,
+        initialCounts: { all: 0, unread: 0 },
+        loadCounts,
+        loadPage,
+        onUnauthorized: handleUnauthorized,
+    });
+
+    useFocusEffect(
+        useCallback(() => {
+            refresh();
+        }, [refresh])
+    );
+
+    useEffect(() => {
+        if (previousUnreadCountRef.current === unreadCount) {
+            return;
+        }
+
+        previousUnreadCountRef.current = unreadCount;
+
+        if (session?.token) {
+            refresh();
+        }
+    }, [refresh, session?.token, unreadCount]);
 
     const handleActionPress = useCallback(
         (item) => {
-            if (!item.request) {
-                return;
-            }
+            void (async () => {
+                try {
+                    if (item.unread) {
+                        await markAsRead(item.id);
+                        setNotifications((currentValue) =>
+                            currentValue.map((notification) =>
+                                notification.id === item.id ? { ...notification, unread: false, readAt: new Date().toISOString() } : notification
+                            )
+                        );
+                    }
 
-            navigation.navigate('ApprovalRequestReview', { request: item.request });
+                    if (!item.holidayId) {
+                        return;
+                    }
+
+                    const request = await fetchApprovalRequestById({
+                        holidayId: item.holidayId,
+                        token: session?.token,
+                    });
+
+                    navigation.navigate('ApprovalRequestReview', { request });
+                } catch (error) {
+                    const message = error instanceof Error ? error.message : 'Unable to open this notification right now.';
+
+                    if (error?.status === 401) {
+                        await signOut();
+                        navigation.reset({
+                            index: 0,
+                            routes: [{ name: 'Splash' }],
+                        });
+                        return;
+                    }
+
+                    Alert.alert('Notification Unavailable', message);
+                }
+            })();
         },
-        [navigation]
+        [markAsRead, navigation, session?.token, signOut]
     );
 
-    const renderNotificationItem = useCallback(
-        ({ item }) => <ApprovalNotificationCard item={item} onActionPress={() => handleActionPress(item)} />,
-        [handleActionPress]
+    const handleMarkAllRead = useCallback(() => {
+        void (async () => {
+            try {
+                await markAllRead();
+                setNotifications((currentValue) => currentValue.map((notification) => ({ ...notification, unread: false, readAt: notification.readAt || new Date().toISOString() })));
+                void refreshUnreadCount({ silent: true });
+                refresh();
+            } catch (error) {
+                const message = error instanceof Error ? error.message : 'Unable to mark all notifications as read.';
+                Alert.alert('Action Failed', message);
+            }
+        })();
+    }, [markAllRead, refresh, refreshUnreadCount, setNotifications]);
+
+    const handleLoadMore = useCallback(() => {
+        void (async () => {
+            const result = await loadMore();
+
+            if (!result.ok && result.reason === 'error') {
+                Alert.alert('Load More Failed', result.message || 'Unable to load more notifications right now.');
+            }
+        })();
+    }, [loadMore]);
+
+    const renderNotificationItem = useCallback(({ item }) => <ApprovalNotificationCard item={item} onActionPress={handleActionPress} />, [handleActionPress]);
+
+    const listEmptyState = isLoading || isBadgeRefreshing ? 'Loading notifications...' : loadError || 'No notifications in this category.';
+    const showLoadMoreButton = pagination.currentPage < pagination.lastPage && notifications.length > 0;
+
+    const listHeader = useMemo(
+        () => (
+            <View style={styles.subHeaderRow}>
+                <Text style={styles.subHeaderText}>{unreadCount} unread notifications</Text>
+                <Pressable onPress={handleMarkAllRead}>
+                    <Text style={styles.clearAllText}>Clear all</Text>
+                </Pressable>
+            </View>
+        ),
+        [handleMarkAllRead, unreadCount]
     );
+
+    const listFooter = useMemo(
+        () =>
+            showLoadMoreButton ? (
+                <Pressable
+                    disabled={isLoadingMore}
+                    onPress={handleLoadMore}
+                    style={[styles.loadMoreButton, isLoadingMore ? styles.loadMoreButtonDisabled : null]}
+                >
+                    <Text style={styles.loadMoreButtonText}>{isLoadingMore ? 'Loading...' : 'Load more'}</Text>
+                </Pressable>
+            ) : null,
+        [handleLoadMore, isLoadingMore, showLoadMoreButton]
+    );
+
+    const listEmptyComponent = useMemo(() => <Text style={styles.emptyState}>{listEmptyState}</Text>, [listEmptyState]);
 
     const keyExtractor = useCallback((item) => item.id, []);
 
@@ -313,14 +243,13 @@ export function ApprovalNotificationsScreen({ navigation }) {
         <ApprovalScreenLayout
             activeNavKey="notifications"
             headerRight={
-                <Pressable>
+                <Pressable onPress={handleMarkAllRead}>
                     <Text style={styles.headerAction}>Mark all read</Text>
                 </Pressable>
             }
             headerSubtitle="Activity & Updates"
             headerTitle="Notifications"
             navigation={navigation}
-            notificationCount={8}
             showBackButton
             useScrollView={false}
         >
@@ -345,21 +274,20 @@ export function ApprovalNotificationsScreen({ navigation }) {
 
             <FlatList
                 contentContainerStyle={[styles.pagePadding, styles.scrollContent]}
-                data={filteredNotifications}
-                extraData={activeTab}
-                keyExtractor={keyExtractor}
+                data={notifications}
+                extraData={`${activeTab}:${notifications.length}:${isLoading ? '1' : '0'}`}
+                initialNumToRender={10}
                 keyboardShouldPersistTaps="handled"
-                ListHeaderComponent={
-                    <View style={styles.subHeaderRow}>
-                        <Text style={styles.subHeaderText}>{unreadCount} unread notifications</Text>
-                        <Pressable>
-                            <Text style={styles.clearAllText}>Clear all</Text>
-                        </Pressable>
-                    </View>
-                }
+                keyExtractor={keyExtractor}
+                ListEmptyComponent={listEmptyComponent}
+                ListFooterComponent={listFooter}
+                ListHeaderComponent={listHeader}
+                maxToRenderPerBatch={10}
                 renderItem={renderNotificationItem}
                 removeClippedSubviews
                 showsVerticalScrollIndicator={false}
+                updateCellsBatchingPeriod={50}
+                windowSize={7}
             />
         </ApprovalScreenLayout>
     );

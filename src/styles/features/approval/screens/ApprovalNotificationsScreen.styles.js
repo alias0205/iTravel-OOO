@@ -84,6 +84,13 @@ const styles = StyleSheet.create({
         lineHeight: 20,
         fontWeight: '700',
     },
+    emptyState: {
+        color: '#6B7280',
+        fontSize: 15,
+        lineHeight: 22,
+        textAlign: 'center',
+        paddingVertical: 28,
+    },
     notificationCard: {
         backgroundColor: '#FFFFFF',
         borderRadius: 16,
@@ -148,6 +155,24 @@ const styles = StyleSheet.create({
         fontSize: 14,
         lineHeight: 18,
         fontWeight: '700',
+    },
+    loadMoreButton: {
+        minHeight: 46,
+        marginTop: 8,
+        marginBottom: 16,
+        borderRadius: 14,
+        backgroundColor: '#0A6B63',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    loadMoreButtonDisabled: {
+        backgroundColor: '#7AA8A3',
+    },
+    loadMoreButtonText: {
+        color: '#FFFFFF',
+        fontSize: 15,
+        lineHeight: 20,
+        fontWeight: '800',
     },
 });
 

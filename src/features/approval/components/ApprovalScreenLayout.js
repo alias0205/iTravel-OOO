@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ScrollView, Text, View, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useApprovalNotifications } from '../context/ApprovalNotificationsContext';
 import { useAuthSession } from '../../auth/context/AuthSessionContext';
 import { DashboardBottomNav } from '../../../shared/components/dashboard/DashboardBottomNav';
 import { DashboardTopBar } from '../../../shared/components/dashboard/DashboardTopBar';
@@ -62,10 +63,12 @@ export function ApprovalScreenLayout({
     useScrollView = true,
 }) {
     const { authProfile, signOut } = useAuthSession();
+    const { unreadCount } = useApprovalNotifications();
+    const resolvedNotificationCount = authProfile?.isApproval ? unreadCount : notificationCount;
 
     const navItems = approvalNavItems.map((item) => ({
         ...item,
-        badge: item.key === 'notifications' ? notificationCount : item.badge,
+        badge: item.key === 'notifications' ? resolvedNotificationCount : item.badge,
     }));
 
     const handleBottomNavPress = (item) => {
@@ -91,7 +94,7 @@ export function ApprovalScreenLayout({
                 avatarLabel={authProfile?.initials ?? 'MJ'}
                 avatarSource={authProfile?.avatarSource}
                 leftIconName="menu"
-                notificationCount={notificationCount}
+                notificationCount={resolvedNotificationCount}
                 onNotificationPress={() => navigation?.navigate('ApprovalNotifications')}
                 onSidebarSignOut={handleSidebarSignOut}
                 sidebarProfileMeta={`${authProfile?.title ?? 'Manager'}, ${authProfile?.department ?? 'Nutrastat'}`}

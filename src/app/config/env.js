@@ -1,6 +1,6 @@
 import { NativeModules, Platform } from 'react-native';
 
-const FALLBACK_API_BASE_URL = 'https://ooo.nutrastat.com';
+const FALLBACK_API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 const LOCALHOST_HOSTS = new Set(['localhost', '127.0.0.1', '::1']);
 const ANDROID_EMULATOR_HOST = '10.0.2.2';
 

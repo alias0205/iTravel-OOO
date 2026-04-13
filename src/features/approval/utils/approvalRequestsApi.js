@@ -346,3 +346,19 @@ export async function fetchApprovalRequestCounts({ adminId, perPage = 1, token }
 
     return Object.fromEntries([...entries, ['by-me', byMeResult.meta.total]]);
 }
+
+export async function fetchApprovalRequestById({ holidayId, token }) {
+    const { ok, payload, response, status } = await apiRequest(`${OUT_OF_OFFICE_ENDPOINT}/${holidayId}`, {
+        method: 'GET',
+        requiresAuth: true,
+        token,
+    });
+
+    if (!ok) {
+        throw buildActionError(payload, 'Unable to load this request right now.', status);
+    }
+
+    const record = payload?.data || payload?.record || payload;
+
+    return normalizeApprovalRequest(record, { serverNow: resolveServerNow(payload, response) });
+}
