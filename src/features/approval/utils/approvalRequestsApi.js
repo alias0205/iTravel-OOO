@@ -3,6 +3,8 @@ import { approvalAvatarSources } from '../data/approvalAvatarSources';
 
 const OUT_OF_OFFICE_ENDPOINT = '/api/out-of-office';
 const OUT_OF_OFFICE_APPROVALS_ENDPOINT = '/api/out-of-office/approvals';
+const REQUEST_COUNTS_TTL_MS = 30_000;
+const approvalRequestCountsCache = new Map();
 const STATUS_MAP = {
     draft: 'draft',
     pending: 'pending',
@@ -169,6 +171,14 @@ function buildActionError(payload, fallbackMessage, status) {
     return error;
 }
 
+function getApprovalRequestCountsCacheKey({ adminId, perPage, token }) {
+    return JSON.stringify({ adminId: adminId ?? null, perPage, token: token || '' });
+}
+
+export function clearApprovalRequestCountsCache() {
+    approvalRequestCountsCache.clear();
+}
+
 function resolveServerNow(payload, response) {
     const payloadServerTime =
         payload?.server_time || payload?.serverTime || payload?.meta?.server_time || payload?.meta?.serverTime || payload?.current_time || payload?.currentTime;
@@ -319,6 +329,13 @@ export async function fetchApprovalRequestsByAdmin({ adminId, page = 1, perPage 
 }
 
 export async function fetchApprovalRequestCounts({ adminId, perPage = 1, token }) {
+    const cacheKey = getApprovalRequestCountsCacheKey({ adminId, perPage, token });
+    const cachedValue = approvalRequestCountsCache.get(cacheKey);
+
+    if (cachedValue && cachedValue.expiresAt > Date.now()) {
+        return cachedValue.value;
+    }
+
     const statuses = ['all', 'pending', 'approved', 'rejected'];
     const entries = await Promise.all(
         statuses.map(async (status) => {
@@ -334,7 +351,13 @@ export async function fetchApprovalRequestCounts({ adminId, perPage = 1, token }
     );
 
     if (adminId == null || adminId === '') {
-        return Object.fromEntries(entries);
+        const value = Object.fromEntries(entries);
+        approvalRequestCountsCache.set(cacheKey, {
+            expiresAt: Date.now() + REQUEST_COUNTS_TTL_MS,
+            value,
+        });
+
+        return value;
     }
 
     const byMeResult = await fetchApprovalRequestsByAdmin({
@@ -344,7 +367,13 @@ export async function fetchApprovalRequestCounts({ adminId, perPage = 1, token }
         token,
     });
 
-    return Object.fromEntries([...entries, ['by-me', byMeResult.meta.total]]);
+    const value = Object.fromEntries([...entries, ['by-me', byMeResult.meta.total]]);
+    approvalRequestCountsCache.set(cacheKey, {
+        expiresAt: Date.now() + REQUEST_COUNTS_TTL_MS,
+        value,
+    });
+
+    return value;
 }
 
 export async function fetchApprovalRequestById({ holidayId, token }) {

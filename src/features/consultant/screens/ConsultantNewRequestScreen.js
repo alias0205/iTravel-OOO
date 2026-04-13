@@ -6,7 +6,7 @@ import { Alert, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } 
 import { getApprovalDurationBreakdown } from '../../approval/utils/approvalDurationUtils';
 import { ConsultantScreenLayout } from '../components/ConsultantScreenLayout';
 import { fetchLeaveReasons } from '../utils/leaveReasonsApi';
-import { createOutOfOfficeRequest, updateOutOfOfficeRequest } from '../utils/outOfOfficeApi';
+import { clearOutOfOfficeRequestCountsCache, createOutOfOfficeRequest, updateOutOfOfficeRequest } from '../utils/outOfOfficeApi';
 import { useAuthSession } from '../../auth/context/AuthSessionContext';
 import { ConsultantNewRequestScreenStyles as styles } from '../../../styles';
 import { DetailSectionCard } from '../../../shared/components/dashboard/DetailSectionCard';
@@ -438,6 +438,8 @@ export function ConsultantNewRequestScreen({ navigation, route }) {
                 } else {
                     await createOutOfOfficeRequest(requestPayload);
                 }
+
+                clearOutOfOfficeRequestCountsCache();
 
                 Alert.alert(
                     isEditMode ? 'Request Updated' : 'Request Submitted',

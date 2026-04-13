@@ -63,6 +63,9 @@ const styles = StyleSheet.create({
     scrollContent: {
         paddingBottom: 24,
     },
+    list: {
+        flex: 1,
+    },
     pagePadding: {
         paddingHorizontal: 16,
         paddingTop: 18,

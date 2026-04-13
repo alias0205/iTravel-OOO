@@ -2,6 +2,8 @@ import { apiRequest } from '../../../app/api/apiClient';
 import { LEAVE_TYPE_ICON } from '../../../shared/constants/leaveTypeIcon';
 
 const CREATE_OUT_OF_OFFICE_ENDPOINT = '/api/out-of-office';
+const REQUEST_COUNTS_TTL_MS = 30_000;
+const outOfOfficeRequestCountsCache = new Map();
 const REVIEWED_STATUSES = new Set(['approved', 'rejected']);
 const STATUS_MAP = {
     draft: 'draft',
@@ -328,6 +330,14 @@ function buildValidationMessage(payload) {
     return 'Please review your request details and try again.';
 }
 
+function getOutOfOfficeRequestCountsCacheKey({ perPage, token }) {
+    return JSON.stringify({ perPage, token: token || '' });
+}
+
+export function clearOutOfOfficeRequestCountsCache() {
+    outOfOfficeRequestCountsCache.clear();
+}
+
 function buildAvatarLabel(fullName) {
     const parts = String(fullName || '')
         .split(' ')
@@ -488,6 +498,13 @@ export async function fetchOutOfOfficeRequestById({ holidayId, token }) {
 }
 
 export async function fetchOutOfOfficeRequestCounts({ perPage = 1, token }) {
+    const cacheKey = getOutOfOfficeRequestCountsCacheKey({ perPage, token });
+    const cachedValue = outOfOfficeRequestCountsCache.get(cacheKey);
+
+    if (cachedValue && cachedValue.expiresAt > Date.now()) {
+        return cachedValue.value;
+    }
+
     const statuses = ['all', 'pending', 'approved', 'rejected'];
     const entries = await Promise.all(
         statuses.map(async (status) => {
@@ -502,5 +519,11 @@ export async function fetchOutOfOfficeRequestCounts({ perPage = 1, token }) {
         })
     );
 
-    return Object.fromEntries(entries);
+    const value = Object.fromEntries(entries);
+    outOfOfficeRequestCountsCache.set(cacheKey, {
+        expiresAt: Date.now() + REQUEST_COUNTS_TTL_MS,
+        value,
+    });
+
+    return value;
 }

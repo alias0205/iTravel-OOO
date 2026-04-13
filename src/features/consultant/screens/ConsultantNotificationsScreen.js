@@ -320,6 +320,7 @@ export function ConsultantNotificationsScreen({ navigation }) {
                 renderItem={renderNotificationItem}
                 removeClippedSubviews
                 showsVerticalScrollIndicator={false}
+                style={styles.list}
             />
         </ConsultantScreenLayout>
     );

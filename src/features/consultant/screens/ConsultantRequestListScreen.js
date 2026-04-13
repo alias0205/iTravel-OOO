@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, FlatList, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { getApprovalDurationBreakdown } from '../../approval/utils/approvalDurationUtils';
 import { ConsultantScreenLayout } from '../components/ConsultantScreenLayout';
@@ -62,26 +62,6 @@ export function ConsultantRequestListScreen({ navigation }) {
         }, [refresh])
     );
 
-    const requestCards = useMemo(
-        () =>
-            requests.map((request) => (
-                <RequestCard
-                    key={request.id}
-                    dateRange={request.dateRange}
-                    detail={getCompactDurationBreakdown(request)}
-                    duration={request.duration}
-                    icon={request.icon}
-                    iconColor={request.iconColor}
-                    meta={request.meta}
-                    onPress={() => navigation.navigate('ConsultantRequestDetail', { request })}
-                    statusLabel={request.statusLabel}
-                    statusTone={request.statusTone}
-                    title={request.title}
-                />
-            )),
-        [navigation, requests]
-    );
-
     const handleLoadMore = useCallback(() => {
         void (async () => {
             const result = await loadMore();
@@ -92,6 +72,41 @@ export function ConsultantRequestListScreen({ navigation }) {
         })();
     }, [loadMore]);
 
+    const renderRequestItem = useCallback(
+        ({ item }) => (
+            <RequestCard
+                dateRange={item.dateRange}
+                detail={getCompactDurationBreakdown(item)}
+                duration={item.duration}
+                icon={item.icon}
+                iconColor={item.iconColor}
+                meta={item.meta}
+                onPress={() => navigation.navigate('ConsultantRequestDetail', { request: item })}
+                statusLabel={item.statusLabel}
+                statusTone={item.statusTone}
+                title={item.title}
+            />
+        ),
+        [navigation]
+    );
+
+    const keyExtractor = useCallback((item) => item.id, []);
+    const showLoadMoreButton = !isLoading && !loadError && pagination.currentPage < pagination.lastPage;
+    const listEmptyComponent = useMemo(
+        () => <Text style={isLoading ? styles.infoState : styles.emptyState}>{isLoading ? 'Loading requests...' : 'No requests in this category.'}</Text>,
+        [isLoading]
+    );
+
+    const listFooter = useMemo(
+        () =>
+            showLoadMoreButton ? (
+                <Pressable disabled={isLoadingMore} onPress={handleLoadMore} style={[styles.loadMoreButton, isLoadingMore ? styles.loadMoreButtonDisabled : null]}>
+                    <Text style={styles.loadMoreButtonText}>{isLoadingMore ? 'Loading...' : 'Load More'}</Text>
+                </Pressable>
+            ) : null,
+        [handleLoadMore, isLoadingMore, showLoadMoreButton]
+    );
+
     return (
         <ConsultantScreenLayout
             activeNavKey="requests"
@@ -99,10 +114,10 @@ export function ConsultantRequestListScreen({ navigation }) {
             headerTitle="All Requests"
             navigation={navigation}
             notificationCount={3}
-            scrollContentStyle={styles.scrollContent}
             showBackButton
+            useScrollView={false}
         >
-            <ScrollView contentContainerStyle={styles.tabRow} horizontal showsHorizontalScrollIndicator={false}>
+            <ScrollView contentContainerStyle={styles.tabRow} horizontal showsHorizontalScrollIndicator={false} style={styles.tabBar}>
                 {requestTabs.map((tab) => (
                     <Pressable key={tab.key} onPress={() => setActiveTab(tab.key)} style={[styles.tabItem, activeTab === tab.key ? styles.tabItemActive : null]}>
                         <Text style={[styles.tabLabel, activeTab === tab.key ? styles.tabLabelActive : null]}>{tab.label}</Text>
@@ -113,25 +128,30 @@ export function ConsultantRequestListScreen({ navigation }) {
                 ))}
             </ScrollView>
 
-            <View style={styles.pagePadding}>
-                {isLoading ? <Text style={styles.infoState}>Loading requests...</Text> : null}
-                {!isLoading && loadError ? (
-                    <View style={styles.retryWrap}>
-                        <Text style={styles.errorState}>{loadError}</Text>
-                        <Pressable onPress={refresh} style={styles.retryButton}>
-                            <Text style={styles.retryButtonText}>Try Again</Text>
-                        </Pressable>
-                    </View>
-                ) : null}
-
-                {!isLoading && !loadError ? requestCards : null}
-                {!isLoading && !loadError && requests.length === 0 ? <Text style={styles.emptyState}>No requests in this category.</Text> : null}
-                {!isLoading && !loadError && pagination.currentPage < pagination.lastPage ? (
-                    <Pressable onPress={handleLoadMore} style={[styles.loadMoreButton, isLoadingMore ? styles.loadMoreButtonDisabled : null]}>
-                        <Text style={styles.loadMoreButtonText}>{isLoadingMore ? 'Loading...' : 'Load More'}</Text>
+            {loadError && !isLoading ? (
+                <View style={[styles.pagePadding, styles.retryWrap]}>
+                    <Text style={styles.errorState}>{loadError}</Text>
+                    <Pressable onPress={refresh} style={styles.retryButton}>
+                        <Text style={styles.retryButtonText}>Try Again</Text>
                     </Pressable>
-                ) : null}
-            </View>
+                </View>
+            ) : (
+                <FlatList
+                    contentContainerStyle={[styles.pagePadding, styles.scrollContent]}
+                    data={requests}
+                    initialNumToRender={8}
+                    keyExtractor={keyExtractor}
+                    keyboardShouldPersistTaps="handled"
+                    ListEmptyComponent={listEmptyComponent}
+                    ListFooterComponent={listFooter}
+                    maxToRenderPerBatch={8}
+                    removeClippedSubviews
+                    renderItem={renderRequestItem}
+                    showsVerticalScrollIndicator={false}
+                    style={styles.list}
+                    windowSize={7}
+                />
+            )}
         </ConsultantScreenLayout>
     );
 }

@@ -1,6 +1,8 @@
 import { API_BASE_URL } from '../config/env';
 import { getAuthSession } from '../../features/auth/utils/authSession';
 
+const isApiDebugEnabled = typeof __DEV__ !== 'undefined' && __DEV__ && process.env.EXPO_PUBLIC_DEBUG_API === 'true';
+
 async function resolveAuthToken(explicitToken) {
     if (explicitToken) {
         return explicitToken;
@@ -161,13 +163,15 @@ export async function apiRequest(path, options = {}) {
 
     const { contentType, parseError, payload, rawBody } = await parseResponsePayload(response);
 
-    console.log('---------- api url ---------', requestUrl);
-    console.log('---------- api options ---------', { method: upperMethod, headers: requestHeaders, body });
-    console.log('---------- api response meta ---------', { ok: response.ok, status: response.status, contentType, parseError });
-    if (payload == null) {
-        console.log('---------- api raw body ---------', rawBody.slice(0, 500));
+    if (isApiDebugEnabled) {
+        console.log('---------- api url ---------', requestUrl);
+        console.log('---------- api options ---------', { method: upperMethod, headers: requestHeaders, body });
+        console.log('---------- api response meta ---------', { ok: response.ok, status: response.status, contentType, parseError });
+        if (payload == null) {
+            console.log('---------- api raw body ---------', rawBody.slice(0, 500));
+        }
+        console.log('---------- apiRequest ---------', payload);
     }
-    console.log('---------- apiRequest ---------', payload);
 
     return {
         ok: response.ok,

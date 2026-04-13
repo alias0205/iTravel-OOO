@@ -4,14 +4,20 @@ const styles = StyleSheet.create({
     scrollContent: {
         paddingBottom: 24,
     },
+    list: {
+        flex: 1,
+    },
     pagePadding: {
         paddingHorizontal: 16,
         paddingTop: 18,
     },
-    tabRow: {
+    tabBar: {
         backgroundColor: '#FFFFFF',
         borderBottomWidth: 1,
         borderBottomColor: '#E5E9EF',
+        flexGrow: 0,
+    },
+    tabRow: {
         paddingHorizontal: 16,
     },
     tabItem: {

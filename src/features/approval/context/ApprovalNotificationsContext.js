@@ -44,16 +44,17 @@ function getRealtimeConfig() {
 }
 
 export function ApprovalNotificationsProvider({ children }) {
-    const { session, signOut } = useAuthSession();
+    const { authProfile, session, signOut } = useAuthSession();
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
     const appStateRef = useRef(AppState.currentState);
     const pusherRef = useRef(null);
     const realtimeChannelRef = useRef(null);
+    const isApprovalUser = Boolean(authProfile?.isApproval);
 
     const refresh = useCallback(
         async ({ silent = false } = {}) => {
-            if (!session?.token) {
+            if (!isApprovalUser || !session?.token) {
                 setUnreadCount(0);
                 return 0;
             }
@@ -84,12 +85,12 @@ export function ApprovalNotificationsProvider({ children }) {
                 }
             }
         },
-        [session?.token, signOut]
+        [isApprovalUser, session?.token, signOut]
     );
 
     const markAsRead = useCallback(
         async (notificationId) => {
-            if (!session?.token) {
+            if (!isApprovalUser || !session?.token) {
                 return null;
             }
 
@@ -101,30 +102,30 @@ export function ApprovalNotificationsProvider({ children }) {
             setUnreadCount((currentValue) => Math.max(0, currentValue - 1));
             return notification;
         },
-        [session?.token]
+        [isApprovalUser, session?.token]
     );
 
     const markAllRead = useCallback(async () => {
-        if (!session?.token) {
+        if (!isApprovalUser || !session?.token) {
             return;
         }
 
         await markAllApprovalNotificationsAsRead({ token: session.token });
         setUnreadCount(0);
-    }, [session?.token]);
+    }, [isApprovalUser, session?.token]);
 
     useEffect(() => {
-        if (!session?.token) {
+        if (!isApprovalUser || !session?.token) {
             setUnreadCount(0);
             setIsRefreshing(false);
             return;
         }
 
         void refresh();
-    }, [refresh, session?.token]);
+    }, [isApprovalUser, refresh, session?.token]);
 
     useEffect(() => {
-        if (!session?.token) {
+        if (!isApprovalUser || !session?.token) {
             return undefined;
         }
 
@@ -140,10 +141,10 @@ export function ApprovalNotificationsProvider({ children }) {
         return () => {
             subscription.remove();
         };
-    }, [refresh, session?.token]);
+    }, [isApprovalUser, refresh, session?.token]);
 
     useEffect(() => {
-        if (!session?.token || !session?.user?.id) {
+        if (!isApprovalUser || !session?.token || !session?.user?.id) {
             return undefined;
         }
 
@@ -189,7 +190,7 @@ export function ApprovalNotificationsProvider({ children }) {
             realtimeChannelRef.current = null;
             pusherRef.current = null;
         };
-    }, [refresh, session?.token, session?.user?.id]);
+    }, [isApprovalUser, refresh, session?.token, session?.user?.id]);
 
     const value = useMemo(
         () => ({

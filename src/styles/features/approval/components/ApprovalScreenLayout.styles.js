@@ -60,6 +60,7 @@ const styles = StyleSheet.create({
     },
     contentBody: {
         flex: 1,
+        minHeight: 0,
     },
 });
 

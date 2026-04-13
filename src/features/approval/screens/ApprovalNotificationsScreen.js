@@ -286,6 +286,7 @@ export function ApprovalNotificationsScreen({ navigation }) {
                 renderItem={renderNotificationItem}
                 removeClippedSubviews
                 showsVerticalScrollIndicator={false}
+                style={styles.list}
                 updateCellsBatchingPeriod={50}
                 windowSize={7}
             />

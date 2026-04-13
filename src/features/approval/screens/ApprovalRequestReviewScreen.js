@@ -5,7 +5,7 @@ import { Alert, Image, Pressable, Text, TextInput, View } from 'react-native';
 import { ApprovalConfirmDialog } from '../components/ApprovalConfirmDialog';
 import { ApprovalScreenLayout } from '../components/ApprovalScreenLayout';
 import { getApprovalDurationBreakdown } from '../utils/approvalDurationUtils';
-import { approveOutOfOfficeRequest, rejectOutOfOfficeRequest } from '../utils/approvalRequestsApi';
+import { approveOutOfOfficeRequest, clearApprovalRequestCountsCache, rejectOutOfOfficeRequest } from '../utils/approvalRequestsApi';
 import { useAuthSession } from '../../auth/context/AuthSessionContext';
 import { LEAVE_TYPE_ICON } from '../../../shared/constants/leaveTypeIcon';
 import { StatusBadge } from '../../../shared/components/dashboard/StatusBadge';
@@ -224,6 +224,8 @@ export function ApprovalRequestReviewScreen({ navigation, route }) {
                     });
                 }
 
+                clearApprovalRequestCountsCache();
+
                 setPendingDecision(null);
                 Alert.alert(
                     isRejectDecision ? 'Request Rejected' : 'Request Approved',
@@ -261,6 +263,7 @@ export function ApprovalRequestReviewScreen({ navigation, route }) {
                 }
 
                 if (status === 409) {
+                    clearApprovalRequestCountsCache();
                     Alert.alert('Already Reviewed', message || 'This request has already been reviewed.');
                     return;
                 }

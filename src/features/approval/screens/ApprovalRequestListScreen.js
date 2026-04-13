@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, FlatList, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { ApprovalConfirmDialog } from '../components/ApprovalConfirmDialog';
 import { ApprovalScreenLayout } from '../components/ApprovalScreenLayout';
-import { approveOutOfOfficeRequest, fetchApprovalRequestCounts, fetchApprovalRequests, fetchApprovalRequestsByAdmin } from '../utils/approvalRequestsApi';
+import { approveOutOfOfficeRequest, clearApprovalRequestCountsCache, fetchApprovalRequestCounts, fetchApprovalRequests, fetchApprovalRequestsByAdmin } from '../utils/approvalRequestsApi';
 import { useAuthSession } from '../../auth/context/AuthSessionContext';
 import { ApprovalRequestListScreenStyles as styles } from '../../../styles';
 import { ApprovalRequestCard } from '../../../shared/components/dashboard/ApprovalRequestCard';
@@ -101,30 +101,45 @@ export function ApprovalRequestListScreen({ navigation, route }) {
         return isCurrentReviewer ? 'by me' : `by ${request.reviewerName}`;
     };
 
-    const requestCards = useMemo(
+    const renderRequestItem = useCallback(
+        ({ item }) => (
+            <ApprovalRequestCard
+                avatarLabel={item.avatarLabel}
+                avatarSource={item.avatarSource}
+                dateRange={item.dateRange}
+                duration={item.duration}
+                leaveLabel={item.leaveLabel}
+                leaveToneKey={item.leaveToneKey}
+                name={item.name}
+                onApprovePress={() => setPendingApprovalRequest(item)}
+                onPress={() => navigation.navigate('ApprovalRequestReview', { request: item })}
+                onReviewPress={() => navigation.navigate('ApprovalRequestReview', { request: item })}
+                reviewerLabel={getReviewerLabel(item)}
+                role={item.role}
+                serverNow={item.serverNow}
+                statusLabel={item.statusLabel}
+                statusTone={item.statusTone}
+                submittedAt={item.raw?.created_at || item.submittedAt}
+            />
+        ),
+        [authProfile?.email, authProfile?.fullName, navigation]
+    );
+
+    const keyExtractor = useCallback((item) => item.id, []);
+    const showLoadMoreButton = !isLoading && !loadError && pagination.currentPage < pagination.lastPage;
+    const listEmptyComponent = useMemo(
+        () => <Text style={isLoading ? styles.infoState : styles.emptyState}>{isLoading ? 'Loading requests...' : 'No requests in this category.'}</Text>,
+        [isLoading]
+    );
+
+    const listFooter = useMemo(
         () =>
-            requests.map((request) => (
-                <ApprovalRequestCard
-                    avatarLabel={request.avatarLabel}
-                    avatarSource={request.avatarSource}
-                    dateRange={request.dateRange}
-                    duration={request.duration}
-                    key={request.id}
-                    leaveLabel={request.leaveLabel}
-                    leaveToneKey={request.leaveToneKey}
-                    name={request.name}
-                    serverNow={request.serverNow}
-                    submittedAt={request.raw?.created_at || request.submittedAt}
-                    onPress={() => navigation.navigate('ApprovalRequestReview', { request })}
-                    reviewerLabel={getReviewerLabel(request)}
-                    role={request.role}
-                    statusLabel={request.statusLabel}
-                    statusTone={request.statusTone}
-                    onApprovePress={() => setPendingApprovalRequest(request)}
-                    onReviewPress={() => navigation.navigate('ApprovalRequestReview', { request })}
-                />
-            )),
-        [authProfile?.email, authProfile?.fullName, navigation, requests]
+            showLoadMoreButton ? (
+                <Pressable disabled={isLoadingMore} onPress={handleLoadMore} style={[styles.loadMoreButton, isLoadingMore ? styles.loadMoreButtonDisabled : null]}>
+                    <Text style={styles.loadMoreButtonText}>{isLoadingMore ? 'Loading...' : 'Load More'}</Text>
+                </Pressable>
+            ) : null,
+        [handleLoadMore, isLoadingMore, showLoadMoreButton]
     );
 
     return (
@@ -135,10 +150,10 @@ export function ApprovalRequestListScreen({ navigation, route }) {
                 headerTitle="All Requests"
                 navigation={navigation}
                 notificationCount={8}
-                scrollContentStyle={styles.scrollContent}
                 showBackButton
+                useScrollView={false}
             >
-                <ScrollView contentContainerStyle={styles.tabRow} horizontal showsHorizontalScrollIndicator={false}>
+                <ScrollView contentContainerStyle={styles.tabRow} horizontal showsHorizontalScrollIndicator={false} style={styles.tabBar}>
                     {requestTabs.map((tab) => (
                         <Pressable key={tab.key} onPress={() => setActiveTab(tab.key)} style={[styles.tabItem, activeTab === tab.key ? styles.tabItemActive : null]}>
                             <Text style={[styles.tabLabel, activeTab === tab.key ? styles.tabLabelActive : null]}>{tab.label}</Text>
@@ -149,25 +164,30 @@ export function ApprovalRequestListScreen({ navigation, route }) {
                     ))}
                 </ScrollView>
 
-                <View style={styles.pagePadding}>
-                    {isLoading ? <Text style={styles.infoState}>Loading requests...</Text> : null}
-                    {!isLoading && loadError ? (
-                        <View style={styles.retryWrap}>
-                            <Text style={styles.errorState}>{loadError}</Text>
-                            <Pressable onPress={refresh} style={styles.retryButton}>
-                                <Text style={styles.retryButtonText}>Try Again</Text>
-                            </Pressable>
-                        </View>
-                    ) : null}
-
-                    {!isLoading && !loadError ? requestCards : null}
-                    {!isLoading && !loadError && requests.length === 0 ? <Text style={styles.emptyState}>No requests in this category.</Text> : null}
-                    {!isLoading && !loadError && pagination.currentPage < pagination.lastPage ? (
-                        <Pressable onPress={handleLoadMore} style={[styles.loadMoreButton, isLoadingMore ? styles.loadMoreButtonDisabled : null]}>
-                            <Text style={styles.loadMoreButtonText}>{isLoadingMore ? 'Loading...' : 'Load More'}</Text>
+                {loadError && !isLoading ? (
+                    <View style={[styles.pagePadding, styles.retryWrap]}>
+                        <Text style={styles.errorState}>{loadError}</Text>
+                        <Pressable onPress={refresh} style={styles.retryButton}>
+                            <Text style={styles.retryButtonText}>Try Again</Text>
                         </Pressable>
-                    ) : null}
-                </View>
+                    </View>
+                ) : (
+                    <FlatList
+                        contentContainerStyle={[styles.pagePadding, styles.scrollContent]}
+                        data={requests}
+                        initialNumToRender={8}
+                        keyExtractor={keyExtractor}
+                        keyboardShouldPersistTaps="handled"
+                        ListEmptyComponent={listEmptyComponent}
+                        ListFooterComponent={listFooter}
+                        maxToRenderPerBatch={8}
+                        removeClippedSubviews
+                        renderItem={renderRequestItem}
+                        showsVerticalScrollIndicator={false}
+                        style={styles.list}
+                        windowSize={7}
+                    />
+                )}
             </ApprovalScreenLayout>
 
             <ApprovalConfirmDialog
@@ -187,6 +207,8 @@ export function ApprovalRequestListScreen({ navigation, route }) {
                                 holidayId: pendingApprovalRequest?.raw?.id || pendingApprovalRequest?.id,
                                 token: session?.token,
                             });
+
+                            clearApprovalRequestCountsCache();
 
                             setPendingApprovalRequest(null);
                             setRequests((currentValue) =>
@@ -225,6 +247,7 @@ export function ApprovalRequestListScreen({ navigation, route }) {
                             }
 
                             if (status === 409) {
+                                clearApprovalRequestCountsCache();
                                 Alert.alert('Already Reviewed', message || 'This request has already been reviewed.');
                                 setPendingApprovalRequest(null);
                                 refresh();

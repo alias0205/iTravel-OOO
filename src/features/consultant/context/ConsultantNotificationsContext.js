@@ -44,16 +44,17 @@ function getRealtimeConfig() {
 }
 
 export function ConsultantNotificationsProvider({ children }) {
-    const { session, signOut } = useAuthSession();
+    const { authProfile, session, signOut } = useAuthSession();
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
     const appStateRef = useRef(AppState.currentState);
     const pusherRef = useRef(null);
     const realtimeChannelRef = useRef(null);
+    const isConsultantUser = Boolean(authProfile?.isConsultant && !authProfile?.isApproval);
 
     const refresh = useCallback(
         async ({ silent = false } = {}) => {
-            if (!session?.token) {
+            if (!isConsultantUser || !session?.token) {
                 setUnreadCount(0);
                 return 0;
             }
@@ -85,12 +86,12 @@ export function ConsultantNotificationsProvider({ children }) {
                 }
             }
         },
-        [session?.token, signOut]
+        [isConsultantUser, session?.token, signOut]
     );
 
     const markAsRead = useCallback(
         async (notificationId) => {
-            if (!session?.token) {
+            if (!isConsultantUser || !session?.token) {
                 return null;
             }
 
@@ -102,30 +103,30 @@ export function ConsultantNotificationsProvider({ children }) {
             setUnreadCount((currentValue) => Math.max(0, currentValue - 1));
             return notification;
         },
-        [session?.token]
+        [isConsultantUser, session?.token]
     );
 
     const markAllRead = useCallback(async () => {
-        if (!session?.token) {
+        if (!isConsultantUser || !session?.token) {
             return;
         }
 
         await markAllApprovalNotificationsAsRead({ token: session.token });
         setUnreadCount(0);
-    }, [session?.token]);
+    }, [isConsultantUser, session?.token]);
 
     useEffect(() => {
-        if (!session?.token) {
+        if (!isConsultantUser || !session?.token) {
             setUnreadCount(0);
             setIsRefreshing(false);
             return;
         }
 
         void refresh();
-    }, [refresh, session?.token]);
+    }, [isConsultantUser, refresh, session?.token]);
 
     useEffect(() => {
-        if (!session?.token) {
+        if (!isConsultantUser || !session?.token) {
             return undefined;
         }
 
@@ -141,10 +142,10 @@ export function ConsultantNotificationsProvider({ children }) {
         return () => {
             subscription.remove();
         };
-    }, [refresh, session?.token]);
+    }, [isConsultantUser, refresh, session?.token]);
 
     useEffect(() => {
-        if (!session?.token || !session?.user?.id) {
+        if (!isConsultantUser || !session?.token || !session?.user?.id) {
             return undefined;
         }
 
@@ -187,7 +188,7 @@ export function ConsultantNotificationsProvider({ children }) {
             realtimeChannelRef.current = null;
             pusherRef.current = null;
         };
-    }, [refresh, session?.token, session?.user?.id]);
+    }, [isConsultantUser, refresh, session?.token, session?.user?.id]);
 
     const value = useMemo(
         () => ({
