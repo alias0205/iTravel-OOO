@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image, Pressable, Text, View } from 'react-native';
 
@@ -85,9 +85,9 @@ function ApprovalRequestCardComponent({
     onApprovePress,
     onReviewPress,
 }) {
-    const tone = leaveTone[leaveToneKey] ?? leaveTone.annual;
-    const isClosedRequest = statusTone === 'approved' || statusTone === 'rejected';
-    const submittedLabel = formatRelativeSubmittedTime(submittedAt, serverNow);
+    const tone = useMemo(() => leaveTone[leaveToneKey] ?? leaveTone.annual, [leaveToneKey]);
+    const isClosedRequest = useMemo(() => statusTone === 'approved' || statusTone === 'rejected', [statusTone]);
+    const submittedLabel = useMemo(() => formatRelativeSubmittedTime(submittedAt, serverNow), [serverNow, submittedAt]);
 
     return (
         <Pressable disabled={!isClosedRequest} onPress={onPress} style={styles.card}>

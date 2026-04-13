@@ -64,7 +64,24 @@ const ApprovalNotificationCard = memo(function ApprovalNotificationCard({ item, 
             </View>
         </View>
     );
-});
+}, areApprovalNotificationCardPropsEqual);
+
+function areApprovalNotificationCardPropsEqual(previousProps, nextProps) {
+    const previousItem = previousProps.item;
+    const nextItem = nextProps.item;
+
+    return (
+        previousItem?.id === nextItem?.id &&
+        previousItem?.title === nextItem?.title &&
+        previousItem?.message === nextItem?.message &&
+        previousItem?.time === nextItem?.time &&
+        previousItem?.unread === nextItem?.unread &&
+        previousItem?.category === nextItem?.category &&
+        previousItem?.type === nextItem?.type &&
+        previousItem?.actionLabel === nextItem?.actionLabel &&
+        previousItem?.holidayId === nextItem?.holidayId
+    );
+}
 
 export function ApprovalNotificationsScreen({ navigation }) {
     const { session, signOut } = useAuthSession();
@@ -275,14 +292,13 @@ export function ApprovalNotificationsScreen({ navigation }) {
             <FlatList
                 contentContainerStyle={[styles.pagePadding, styles.scrollContent]}
                 data={notifications}
-                extraData={`${activeTab}:${notifications.length}:${isLoading ? '1' : '0'}`}
-                initialNumToRender={10}
+                initialNumToRender={8}
                 keyboardShouldPersistTaps="handled"
                 keyExtractor={keyExtractor}
                 ListEmptyComponent={listEmptyComponent}
                 ListFooterComponent={listFooter}
                 ListHeaderComponent={listHeader}
-                maxToRenderPerBatch={10}
+                maxToRenderPerBatch={8}
                 renderItem={renderNotificationItem}
                 removeClippedSubviews
                 showsVerticalScrollIndicator={false}

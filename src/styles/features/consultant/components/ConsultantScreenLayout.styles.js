@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
         marginLeft: 12,
     },
     scrollContent: {
-        paddingBottom: 18,
+        paddingBottom: 0,
     },
     contentBody: {
         flex: 1,

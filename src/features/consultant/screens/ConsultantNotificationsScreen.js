@@ -99,7 +99,24 @@ const NotificationCard = memo(function NotificationCard({ notification, onAction
             </View>
         </View>
     );
-});
+}, areConsultantNotificationCardPropsEqual);
+
+function areConsultantNotificationCardPropsEqual(previousProps, nextProps) {
+    const previousItem = previousProps.notification;
+    const nextItem = nextProps.notification;
+
+    return (
+        previousItem?.id === nextItem?.id &&
+        previousItem?.title === nextItem?.title &&
+        previousItem?.message === nextItem?.message &&
+        previousItem?.time === nextItem?.time &&
+        previousItem?.unread === nextItem?.unread &&
+        previousItem?.category === nextItem?.category &&
+        previousItem?.type === nextItem?.type &&
+        previousItem?.actionLabel === nextItem?.actionLabel &&
+        previousItem?.holidayId === nextItem?.holidayId
+    );
+}
 
 export function ConsultantNotificationsScreen({ navigation }) {
     const { session, signOut } = useAuthSession();
@@ -311,16 +328,19 @@ export function ConsultantNotificationsScreen({ navigation }) {
             <FlatList
                 contentContainerStyle={[styles.pagePadding, styles.scrollContent]}
                 data={notifications}
-                extraData={activeTab}
+                initialNumToRender={8}
                 keyExtractor={keyExtractor}
                 keyboardShouldPersistTaps="handled"
                 ListEmptyComponent={listEmptyComponent}
                 ListFooterComponent={listFooter}
                 ListHeaderComponent={listHeader}
+                maxToRenderPerBatch={8}
                 renderItem={renderNotificationItem}
                 removeClippedSubviews
                 showsVerticalScrollIndicator={false}
                 style={styles.list}
+                updateCellsBatchingPeriod={50}
+                windowSize={7}
             />
         </ConsultantScreenLayout>
     );

@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, Text, View } from 'react-native';
 
@@ -12,7 +12,7 @@ const iconTone = {
 };
 
 function RequestCardComponent({ title, dateRange, duration, detail, meta, icon, iconColor = 'blue', statusLabel, statusTone, onPress }) {
-    const currentIconTone = iconTone[iconColor] ?? iconTone.blue;
+    const currentIconTone = useMemo(() => iconTone[iconColor] ?? iconTone.blue, [iconColor]);
 
     return (
         <Pressable onPress={onPress} style={styles.card}>

@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
     scrollContent: {
-        paddingBottom: 24,
+        paddingBottom: 12,
     },
     pagePadding: {
         paddingHorizontal: 16,

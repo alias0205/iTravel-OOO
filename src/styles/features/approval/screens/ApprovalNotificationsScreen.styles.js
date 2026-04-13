@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
         color: '#0A6B63',
     },
     scrollContent: {
-        paddingBottom: 24,
+        paddingBottom: 18,
     },
     list: {
         flex: 1,

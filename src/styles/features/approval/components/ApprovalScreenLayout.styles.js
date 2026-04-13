@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
         flexShrink: 0,
     },
     scrollContent: {
-        paddingBottom: 18,
+        paddingBottom: 0,
     },
     contentBody: {
         flex: 1,
