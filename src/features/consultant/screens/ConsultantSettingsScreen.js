@@ -1,11 +1,22 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Image, Pressable, Text, TextInput, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 
 import { ConsultantScreenLayout } from '../components/ConsultantScreenLayout';
 import { useAuthSession } from '../../auth/context/AuthSessionContext';
+import { fetchCurrentUserProfile, updateCurrentUserPassword, updateCurrentUserProfile } from '../../auth/utils/authApi';
 import { ConsultantSettingsScreenStyles as styles } from '../../../styles';
 
-const profileAvatar = require('../../../../assets/nutra/avatars/avatar-4.jpg');
+function getProfileInitials(firstName, lastName, email) {
+    const firstInitial = firstName?.trim()?.charAt(0) || '';
+    const lastInitial = lastName?.trim()?.charAt(0) || '';
+
+    if (firstInitial || lastInitial) {
+        return `${firstInitial}${lastInitial}`.toUpperCase();
+    }
+
+    return (email?.trim()?.charAt(0) || '?').toUpperCase();
+}
 
 function SettingsSection({ icon, title, subtitle, children }) {
     return (
@@ -23,11 +34,23 @@ function SettingsSection({ icon, title, subtitle, children }) {
     );
 }
 
-function SettingsField({ label, value, multiline = false }) {
+function SettingsField({ autoCapitalize = 'sentences', autoCorrect = true, label, multiline = false, onChangeText, rightAccessory = null, secureTextEntry = false, value }) {
     return (
         <View style={styles.fieldWrap}>
             <Text style={styles.fieldLabel}>{label}</Text>
-            <TextInput editable={true} multiline={multiline} style={[styles.inputShell, multiline ? styles.inputShellMultiline : null]} value={value} />
+            <View style={styles.inputShellWrap}>
+                <TextInput
+                    autoCapitalize={autoCapitalize}
+                    autoCorrect={autoCorrect}
+                    editable
+                    multiline={multiline}
+                    onChangeText={onChangeText}
+                    secureTextEntry={secureTextEntry}
+                    style={[styles.inputShell, rightAccessory ? styles.inputShellWithAccessory : null, multiline ? styles.inputShellMultiline : null]}
+                    value={value}
+                />
+                {rightAccessory ? <View style={styles.inputAccessory}>{rightAccessory}</View> : null}
+            </View>
         </View>
     );
 }
@@ -44,7 +67,7 @@ function SelectField({ label, value }) {
     );
 }
 
-function SecurityRow({ title, subtitle, actionLabel, tone = 'default' }) {
+function SecurityRow({ actionLabel, onPress, subtitle, title, tone = 'default' }) {
     return (
         <View style={styles.securityRow}>
             <View style={styles.securityCopy}>
@@ -57,7 +80,7 @@ function SecurityRow({ title, subtitle, actionLabel, tone = 'default' }) {
                     <Text style={styles.statusBadgeText}>{actionLabel}</Text>
                 </View>
             ) : (
-                <Pressable style={[styles.securityActionButton, tone === 'primary' ? styles.securityActionButtonPrimary : null]}>
+                <Pressable onPress={onPress} style={[styles.securityActionButton, tone === 'primary' ? styles.securityActionButtonPrimary : null]}>
                     <Text style={[styles.securityActionText, tone === 'primary' ? styles.securityActionTextPrimary : styles.securityActionTextDefault]}>{actionLabel}</Text>
                 </Pressable>
             )}
@@ -66,7 +89,71 @@ function SecurityRow({ title, subtitle, actionLabel, tone = 'default' }) {
 }
 
 export function ConsultantSettingsScreen({ navigation }) {
-    const { authProfile, signOut } = useAuthSession();
+    const { authProfile, session, signIn, signOut } = useAuthSession();
+    const [confirmNewPassword, setConfirmNewPassword] = useState('');
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [email, setEmail] = useState(authProfile?.email ?? '');
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
+    const [isPasswordFormVisible, setIsPasswordFormVisible] = useState(false);
+    const [firstName, setFirstName] = useState(authProfile?.firstName ?? '');
+    const [isSaving, setIsSaving] = useState(false);
+    const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+    const [lastName, setLastName] = useState(authProfile?.lastName ?? '');
+    const [newPassword, setNewPassword] = useState('');
+    const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const profileInitials = getProfileInitials(firstName, lastName, email);
+
+    useEffect(() => {
+        setFirstName(authProfile?.firstName ?? '');
+        setLastName(authProfile?.lastName ?? '');
+        setEmail(authProfile?.email ?? '');
+    }, [authProfile?.email, authProfile?.firstName, authProfile?.lastName]);
+
+    useEffect(() => {
+        if (!session?.token) {
+            return;
+        }
+
+        let isMounted = true;
+
+        void (async () => {
+            setIsLoadingProfile(true);
+
+            try {
+                const user = await fetchCurrentUserProfile({ token: session.token });
+
+                if (!isMounted || !user) {
+                    return;
+                }
+
+                setFirstName(user.first_name || '');
+                setLastName(user.last_name || '');
+                setEmail(user.email || '');
+            } catch (error) {
+                if (!isMounted) {
+                    return;
+                }
+
+                if (error?.status === 401) {
+                    await signOut();
+                    navigation?.reset({
+                        index: 0,
+                        routes: [{ name: 'Splash' }],
+                    });
+                }
+            } finally {
+                if (isMounted) {
+                    setIsLoadingProfile(false);
+                }
+            }
+        })();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [navigation, session?.token, signOut]);
 
     const handleSignOut = async () => {
         await signOut();
@@ -76,12 +163,105 @@ export function ConsultantSettingsScreen({ navigation }) {
         });
     };
 
+    const handleSave = () => {
+        void (async () => {
+            if (!session?.token || isSaving) {
+                return;
+            }
+
+            setIsSaving(true);
+
+            try {
+                const result = await updateCurrentUserProfile({
+                    email,
+                    firstName,
+                    lastName,
+                    token: session.token,
+                });
+
+                if (result.user) {
+                    await signIn({ ...session, user: result.user });
+                }
+
+                Alert.alert('Profile Updated', result.message);
+            } catch (error) {
+                const message = error instanceof Error ? error.message : 'Unable to update your profile right now.';
+
+                if (error?.status === 401) {
+                    await signOut();
+                    navigation?.reset({
+                        index: 0,
+                        routes: [{ name: 'Splash' }],
+                    });
+                    return;
+                }
+
+                Alert.alert('Update Failed', message);
+            } finally {
+                setIsSaving(false);
+            }
+        })();
+    };
+
+    const handleChangePassword = () => {
+        void (async () => {
+            if (!session?.token || isChangingPassword) {
+                return;
+            }
+
+            if (!currentPassword || !newPassword || !confirmNewPassword) {
+                Alert.alert('Missing Information', 'Please fill in your current password, new password, and confirmation.');
+                return;
+            }
+
+            if (newPassword !== confirmNewPassword) {
+                Alert.alert('Password Mismatch', 'The new password and confirmation password must match.');
+                return;
+            }
+
+            setIsChangingPassword(true);
+
+            try {
+                const result = await updateCurrentUserPassword({
+                    currentPassword,
+                    newPassword,
+                    passwordConfirmation: confirmNewPassword,
+                    token: session.token,
+                });
+
+                setCurrentPassword('');
+                setNewPassword('');
+                setConfirmNewPassword('');
+                setShowCurrentPassword(false);
+                setShowNewPassword(false);
+                setShowConfirmNewPassword(false);
+                setIsPasswordFormVisible(false);
+                Alert.alert('Password Updated', result.message);
+            } catch (error) {
+                const message = error instanceof Error ? error.message : 'Unable to update your password right now.';
+
+                if (error?.status === 401) {
+                    await signOut();
+                    navigation?.reset({
+                        index: 0,
+                        routes: [{ name: 'Splash' }],
+                    });
+                    return;
+                }
+
+                Alert.alert('Update Failed', message);
+            } finally {
+                setIsChangingPassword(false);
+            }
+        })();
+    };
+
     return (
         <ConsultantScreenLayout
             activeNavKey="settings"
             headerRight={
-                <Pressable style={styles.saveButton}>
-                    <Text style={styles.saveButtonText}>Save</Text>
+                <Pressable onPress={handleSave} style={[styles.saveButton, isSaving ? styles.saveButtonDisabled : null]}>
+                    <Text style={styles.saveButtonText}>{isSaving ? 'Saving...' : 'Save'}</Text>
                 </Pressable>
             }
             headerSubtitle="Manage your preferences"
@@ -93,21 +273,84 @@ export function ConsultantSettingsScreen({ navigation }) {
             scrollContentStyle={styles.scrollContent}
         >
             <View style={styles.pagePadding}>
-                <SettingsSection icon="account" subtitle="Update your basic profile information and photo" title="Profile Information">
+                <SettingsSection icon="account" subtitle="Update your basic profile information" title="Profile Information">
                     <View style={styles.profilePhotoBlock}>
-                        <Image source={profileAvatar} style={styles.profilePhoto} />
-                        <Pressable>
-                            <Text style={styles.changePhotoText}>Change Photo</Text>
-                        </Pressable>
+                        <View style={styles.profileMonogram}>
+                            <Text style={styles.profileMonogramText}>{profileInitials}</Text>
+                        </View>
                     </View>
 
-                    <SettingsField label="First Name" value={authProfile?.firstName ?? 'Michael'} />
-                    <SettingsField label="Last Name" value={authProfile?.lastName ?? 'Chen'} />
-                    <SettingsField label="Email Address" value={authProfile?.email ?? 'michael.chen@company.com'} />
+                    <SettingsField label="First Name" onChangeText={setFirstName} value={firstName} />
+                    <SettingsField label="Last Name" onChangeText={setLastName} value={lastName} />
+                    <SettingsField label="Email Address" onChangeText={setEmail} value={email} />
+                    {isLoadingProfile ? <Text style={styles.profileSyncText}>Refreshing profile...</Text> : null}
                 </SettingsSection>
 
                 <SettingsSection icon="shield-check" subtitle="Manage your account security settings" title="Security & Privacy">
-                    <SecurityRow actionLabel="Change Password" subtitle="Last changed 3 months ago" title="Password" />
+                    <SecurityRow actionLabel="Change Password" onPress={() => setIsPasswordFormVisible(true)} subtitle="Update your password securely" title="Password" />
+
+                    {isPasswordFormVisible ? (
+                        <View style={styles.passwordFormBlock}>
+                            <SettingsField
+                                autoCapitalize="none"
+                                autoCorrect={false}
+                                label="Current Password"
+                                onChangeText={setCurrentPassword}
+                                rightAccessory={
+                                    <Pressable accessibilityLabel={showCurrentPassword ? 'Hide current password' : 'Show current password'} hitSlop={10} onPress={() => setShowCurrentPassword((currentValue) => !currentValue)}>
+                                        <MaterialCommunityIcons color="#64748B" name={showCurrentPassword ? 'eye-off-outline' : 'eye-outline'} size={22} />
+                                    </Pressable>
+                                }
+                                secureTextEntry={!showCurrentPassword}
+                                value={currentPassword}
+                            />
+                            <SettingsField
+                                autoCapitalize="none"
+                                autoCorrect={false}
+                                label="New Password"
+                                onChangeText={setNewPassword}
+                                rightAccessory={
+                                    <Pressable accessibilityLabel={showNewPassword ? 'Hide new password' : 'Show new password'} hitSlop={10} onPress={() => setShowNewPassword((currentValue) => !currentValue)}>
+                                        <MaterialCommunityIcons color="#64748B" name={showNewPassword ? 'eye-off-outline' : 'eye-outline'} size={22} />
+                                    </Pressable>
+                                }
+                                secureTextEntry={!showNewPassword}
+                                value={newPassword}
+                            />
+                            <SettingsField
+                                autoCapitalize="none"
+                                autoCorrect={false}
+                                label="Confirm New Password"
+                                onChangeText={setConfirmNewPassword}
+                                rightAccessory={
+                                    <Pressable accessibilityLabel={showConfirmNewPassword ? 'Hide confirm new password' : 'Show confirm new password'} hitSlop={10} onPress={() => setShowConfirmNewPassword((currentValue) => !currentValue)}>
+                                        <MaterialCommunityIcons color="#64748B" name={showConfirmNewPassword ? 'eye-off-outline' : 'eye-outline'} size={22} />
+                                    </Pressable>
+                                }
+                                secureTextEntry={!showConfirmNewPassword}
+                                value={confirmNewPassword}
+                            />
+
+                            <Pressable onPress={handleChangePassword} style={[styles.passwordButton, isChangingPassword ? styles.passwordButtonDisabled : null]}>
+                                <Text style={styles.passwordButtonText}>{isChangingPassword ? 'Updating Password...' : 'Update Password'}</Text>
+                            </Pressable>
+
+                            <Pressable
+                                onPress={() => {
+                                    setIsPasswordFormVisible(false);
+                                    setCurrentPassword('');
+                                    setNewPassword('');
+                                    setConfirmNewPassword('');
+                                    setShowCurrentPassword(false);
+                                    setShowNewPassword(false);
+                                    setShowConfirmNewPassword(false);
+                                }}
+                                style={styles.passwordCancelButton}
+                            >
+                                <Text style={styles.passwordCancelButtonText}>Cancel</Text>
+                            </Pressable>
+                        </View>
+                    ) : null}
                 </SettingsSection>
 
                 <Pressable onPress={handleSignOut} style={styles.signOutButton}>

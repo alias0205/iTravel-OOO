@@ -17,6 +17,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingHorizontal: 14,
     },
+    saveButtonDisabled: {
+        backgroundColor: '#7AA8A3',
+    },
     saveButtonText: {
         color: '#FFFFFF',
         fontSize: 14,
@@ -63,20 +66,33 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 14,
     },
-    profilePhoto: {
+    profileMonogram: {
         width: 62,
         height: 62,
         borderRadius: 31,
-        marginBottom: 8,
+        backgroundColor: '#0A6B63',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
-    changePhotoText: {
-        color: '#0A6B63',
-        fontSize: 14,
-        lineHeight: 20,
-        fontWeight: '700',
+    profileMonogramText: {
+        color: '#FFFFFF',
+        fontSize: 22,
+        lineHeight: 26,
+        fontWeight: '800',
+    },
+    profileSyncText: {
+        color: '#6B7280',
+        fontSize: 13,
+        lineHeight: 18,
+        marginTop: -4,
+        marginBottom: 8,
     },
     fieldWrap: {
         marginBottom: 14,
+    },
+    inputShellWrap: {
+        position: 'relative',
+        justifyContent: 'center',
     },
     fieldLabel: {
         color: '#5B6575',
@@ -94,6 +110,17 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         color: '#1F2937',
         fontSize: 15,
+    },
+    inputShellWithAccessory: {
+        paddingRight: 44,
+    },
+    inputAccessory: {
+        position: 'absolute',
+        right: 12,
+        top: 0,
+        bottom: 0,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     inputShellMultiline: {
         minHeight: 84,
@@ -172,6 +199,38 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         flexDirection: 'row',
         marginBottom: 4,
+    },
+    passwordButton: {
+        height: 46,
+        borderRadius: 10,
+        backgroundColor: '#0A6B63',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 2,
+    },
+    passwordButtonDisabled: {
+        backgroundColor: '#7AA8A3',
+    },
+    passwordButtonText: {
+        color: '#FFFFFF',
+        fontSize: 15,
+        lineHeight: 20,
+        fontWeight: '800',
+    },
+    passwordCancelButton: {
+        alignSelf: 'center',
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        marginTop: 4,
+    },
+    passwordCancelButtonText: {
+        color: '#0A6B63',
+        fontSize: 14,
+        lineHeight: 18,
+        fontWeight: '700',
+    },
+    passwordFormBlock: {
+        marginTop: 2,
     },
     signOutText: {
         color: '#EF4444',
