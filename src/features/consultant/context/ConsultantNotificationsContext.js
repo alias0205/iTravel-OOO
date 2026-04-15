@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { Pusher } from 'pusher-js/react-native';
 
 import { useAuthSession } from '../../auth/context/AuthSessionContext';
-import { API_BASE_URL } from '../../../app/config/env';
+import { API_BASE_URL, resolveDevelopmentHostname } from '../../../app/config/env';
 import {
     fetchApprovalNotifications,
     markAllApprovalNotificationsAsRead,
@@ -15,10 +15,25 @@ const REALTIME_EVENT_NAME = 'database-notifications.sent';
 const DEFAULT_REVERB_APP_KEY = process.env.EXPO_PUBLIC_REVERB_APP_KEY || 'omanager-local-key';
 const DEFAULT_PUSHER_CLUSTER = process.env.EXPO_PUBLIC_PUSHER_CLUSTER || 'mt1';
 
+function getConfiguredRealtimeScheme(fallbackProtocol) {
+    const configuredScheme = process.env.EXPO_PUBLIC_REVERB_SCHEME?.trim()?.toLowerCase();
+
+    if (configuredScheme === 'http' || configuredScheme === 'ws') {
+        return 'ws';
+    }
+
+    if (configuredScheme === 'https' || configuredScheme === 'wss') {
+        return 'wss';
+    }
+
+    return fallbackProtocol === 'https:' ? 'wss' : 'ws';
+}
+
 function getRealtimeConfig() {
     try {
         const apiUrl = new URL(API_BASE_URL);
-        const isSecure = apiUrl.protocol === 'https:';
+        const realtimeScheme = getConfiguredRealtimeScheme(apiUrl.protocol);
+        const isSecure = realtimeScheme === 'wss';
         const defaultPort = Number(isSecure ? 443 : 8080);
 
         return {
@@ -26,7 +41,8 @@ function getRealtimeConfig() {
             authEndpoint: `${API_BASE_URL}/api/broadcasting/auth`,
             cluster: DEFAULT_PUSHER_CLUSTER,
             forceTLS: isSecure,
-            wsHost: process.env.EXPO_PUBLIC_REVERB_HOST || apiUrl.hostname,
+            scheme: realtimeScheme,
+            wsHost: resolveDevelopmentHostname(process.env.EXPO_PUBLIC_REVERB_HOST || apiUrl.hostname),
             wsPort: Number(process.env.EXPO_PUBLIC_REVERB_PORT || defaultPort),
             wssPort: Number(process.env.EXPO_PUBLIC_REVERB_PORT || (isSecure ? 443 : defaultPort)),
         };
@@ -35,8 +51,9 @@ function getRealtimeConfig() {
             appKey: DEFAULT_REVERB_APP_KEY,
             authEndpoint: `${API_BASE_URL}/api/broadcasting/auth`,
             cluster: DEFAULT_PUSHER_CLUSTER,
-            forceTLS: false,
-            wsHost: process.env.EXPO_PUBLIC_REVERB_HOST || '127.0.0.1',
+            forceTLS: getConfiguredRealtimeScheme('http:') === 'wss',
+            scheme: getConfiguredRealtimeScheme('http:'),
+            wsHost: resolveDevelopmentHostname(process.env.EXPO_PUBLIC_REVERB_HOST || '127.0.0.1'),
             wsPort: Number(process.env.EXPO_PUBLIC_REVERB_PORT || 8080),
             wssPort: Number(process.env.EXPO_PUBLIC_REVERB_PORT || 8080),
         };
@@ -46,6 +63,7 @@ function getRealtimeConfig() {
 export function ConsultantNotificationsProvider({ children }) {
     const { authProfile, session, signOut } = useAuthSession();
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [realtimeRefreshKey, setRealtimeRefreshKey] = useState(0);
     const [unreadCount, setUnreadCount] = useState(0);
     const appStateRef = useRef(AppState.currentState);
     const pusherRef = useRef(null);
@@ -170,18 +188,22 @@ export function ConsultantNotificationsProvider({ children }) {
         const channelName = `private-App.Models.Auth.User.${session.user.id}`;
         const channel = pusher.subscribe(channelName);
         const handleRealtimeNotification = () => {
+            setRealtimeRefreshKey((currentValue) => currentValue + 1);
+            void refresh({ silent: true });
+        };
+        const handleConnected = () => {
             void refresh({ silent: true });
         };
 
         channel.bind(REALTIME_EVENT_NAME, handleRealtimeNotification);
-        pusher.connection.bind('connected', handleRealtimeNotification);
+        pusher.connection.bind('connected', handleConnected);
 
         pusherRef.current = pusher;
         realtimeChannelRef.current = channel;
 
         return () => {
             realtimeChannelRef.current?.unbind(REALTIME_EVENT_NAME, handleRealtimeNotification);
-            pusherRef.current?.connection?.unbind('connected', handleRealtimeNotification);
+            pusherRef.current?.connection?.unbind('connected', handleConnected);
 
             pusherRef.current?.unsubscribe(channelName);
             pusherRef.current?.disconnect();
@@ -196,9 +218,10 @@ export function ConsultantNotificationsProvider({ children }) {
             markAllRead,
             markAsRead,
             refresh,
+            realtimeRefreshKey,
             unreadCount,
         }),
-        [isRefreshing, markAllRead, markAsRead, refresh, unreadCount]
+        [isRefreshing, markAllRead, markAsRead, refresh, realtimeRefreshKey, unreadCount]
     );
 
     return <ConsultantNotificationsContext.Provider value={value}>{children}</ConsultantNotificationsContext.Provider>;

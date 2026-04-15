@@ -120,9 +120,17 @@ function areConsultantNotificationCardPropsEqual(previousProps, nextProps) {
 
 export function ConsultantNotificationsScreen({ navigation }) {
     const { session, signOut } = useAuthSession();
-    const { isRefreshing: isBadgeRefreshing, markAllRead, markAsRead, refresh: refreshUnreadCount, unreadCount } = useConsultantNotifications();
+    const {
+        isRefreshing: isBadgeRefreshing,
+        markAllRead,
+        markAsRead,
+        refresh: refreshUnreadCount,
+        realtimeRefreshKey,
+        unreadCount,
+    } = useConsultantNotifications();
     const [activeTab, setActiveTab] = useState('all');
     const previousUnreadCountRef = useRef(unreadCount);
+    const previousRealtimeRefreshKeyRef = useRef(realtimeRefreshKey);
 
     const handleUnauthorized = useCallback(async () => {
         await signOut();
@@ -189,6 +197,18 @@ export function ConsultantNotificationsScreen({ navigation }) {
             refresh();
         }
     }, [refresh, session?.token, unreadCount]);
+
+    useEffect(() => {
+        if (previousRealtimeRefreshKeyRef.current === realtimeRefreshKey) {
+            return;
+        }
+
+        previousRealtimeRefreshKeyRef.current = realtimeRefreshKey;
+
+        if (session?.token) {
+            refresh();
+        }
+    }, [realtimeRefreshKey, refresh, session?.token]);
 
     const handleActionPress = useCallback(
         (item) => {

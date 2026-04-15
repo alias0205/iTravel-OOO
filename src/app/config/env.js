@@ -40,6 +40,10 @@ function resolveDevelopmentHost(hostname) {
     return hostname;
 }
 
+export function resolveDevelopmentHostname(hostname) {
+    return resolveDevelopmentHost(hostname);
+}
+
 function resolveApiBaseUrl(value) {
     const normalizedValue = normalizeBaseUrl(value);
 
