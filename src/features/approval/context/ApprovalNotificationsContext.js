@@ -5,6 +5,7 @@ import { Pusher } from 'pusher-js/react-native';
 import { useAuthSession } from '../../auth/context/AuthSessionContext';
 import { API_BASE_URL, resolveDevelopmentHostname } from '../../../app/config/env';
 import {
+    clearAllApprovalNotifications,
     fetchApprovalNotifications,
     markAllApprovalNotificationsAsRead,
     markApprovalNotificationAsRead,
@@ -132,6 +133,17 @@ export function ApprovalNotificationsProvider({ children }) {
         setUnreadCount(0);
     }, [isApprovalUser, session?.token]);
 
+    const clearAll = useCallback(async () => {
+        if (!isApprovalUser || !session?.token) {
+            return { deletedCount: 0 };
+        }
+
+        const result = await clearAllApprovalNotifications({ token: session.token });
+        setUnreadCount(0);
+
+        return result;
+    }, [isApprovalUser, session?.token]);
+
     useEffect(() => {
         if (!isApprovalUser || !session?.token) {
             setUnreadCount(0);
@@ -216,6 +228,7 @@ export function ApprovalNotificationsProvider({ children }) {
 
     const value = useMemo(
         () => ({
+            clearAll,
             isRefreshing,
             markAllRead,
             markAsRead,
@@ -223,7 +236,7 @@ export function ApprovalNotificationsProvider({ children }) {
             realtimeRefreshKey,
             unreadCount,
         }),
-        [isRefreshing, markAllRead, markAsRead, refresh, realtimeRefreshKey, unreadCount]
+        [clearAll, isRefreshing, markAllRead, markAsRead, refresh, realtimeRefreshKey, unreadCount]
     );
 
     return <ApprovalNotificationsContext.Provider value={value}>{children}</ApprovalNotificationsContext.Provider>;

@@ -82,3 +82,19 @@ export async function markAllApprovalNotificationsAsRead({ token }) {
         throw buildNotificationError(payload, 'Unable to mark all notifications as read.', status);
     }
 }
+
+export async function clearAllApprovalNotifications({ token }) {
+    const { ok, payload, status } = await apiRequest(`${NOTIFICATIONS_ENDPOINT}/clear-all`, {
+        method: 'POST',
+        requiresAuth: true,
+        token,
+    });
+
+    if (!ok) {
+        throw buildNotificationError(payload, 'Unable to clear notifications right now.', status);
+    }
+
+    return {
+        deletedCount: Number(payload?.deleted_count || 0),
+    };
+}

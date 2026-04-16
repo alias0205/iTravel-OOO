@@ -121,6 +121,7 @@ function areConsultantNotificationCardPropsEqual(previousProps, nextProps) {
 export function ConsultantNotificationsScreen({ navigation }) {
     const { session, signOut } = useAuthSession();
     const {
+        clearAll,
         isRefreshing: isBadgeRefreshing,
         markAllRead,
         markAsRead,
@@ -266,6 +267,44 @@ export function ConsultantNotificationsScreen({ navigation }) {
         })();
     }, [markAllRead, refresh, refreshUnreadCount, setNotifications]);
 
+    const handleClearAll = useCallback(() => {
+        const totalNotifications = Number(tabCounts.all || notifications.length || 0);
+
+        if (totalNotifications <= 0) {
+            return;
+        }
+
+        Alert.alert('Clear all notifications?', 'This will permanently remove all notifications from your list.', [
+            { text: 'Cancel', style: 'cancel' },
+            {
+                text: 'Clear all',
+                style: 'destructive',
+                onPress: () => {
+                    void (async () => {
+                        try {
+                            await clearAll();
+                            setNotifications([]);
+                            refresh();
+                        } catch (error) {
+                            const message = error instanceof Error ? error.message : 'Unable to clear notifications right now.';
+
+                            if (error?.status === 401) {
+                                await signOut();
+                                navigation.reset({
+                                    index: 0,
+                                    routes: [{ name: 'Splash' }],
+                                });
+                                return;
+                            }
+
+                            Alert.alert('Action Failed', message);
+                        }
+                    })();
+                },
+            },
+        ]);
+    }, [clearAll, navigation, notifications.length, refresh, setNotifications, signOut, tabCounts.all]);
+
     const handleLoadMore = useCallback(() => {
         void (async () => {
             const result = await loadMore();
@@ -285,12 +324,12 @@ export function ConsultantNotificationsScreen({ navigation }) {
         () => (
             <View style={styles.subHeaderRow}>
                 <Text style={styles.subHeaderText}>{unreadCount} unread notifications</Text>
-                <Pressable onPress={handleMarkAllRead}>
+                <Pressable onPress={handleClearAll}>
                     <Text style={styles.clearAllText}>Clear all</Text>
                 </Pressable>
             </View>
         ),
-        [handleMarkAllRead, unreadCount]
+        [handleClearAll, unreadCount]
     );
 
     const listFooter = useMemo(
