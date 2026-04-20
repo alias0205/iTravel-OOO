@@ -3,7 +3,6 @@ import { Pressable, Text, View } from 'react-native';
 
 import { getApprovalDurationBreakdown } from '../../approval/utils/approvalDurationUtils';
 import { ConsultantScreenLayout } from '../components/ConsultantScreenLayout';
-import { consultantDefaultRequest } from '../data/consultantRequests';
 import { ConsultantRequestDetailScreenStyles as styles } from '../../../styles';
 import { DetailSectionCard } from '../../../shared/components/dashboard/DetailSectionCard';
 import { InfoField } from '../../../shared/components/dashboard/InfoField';
@@ -98,7 +97,20 @@ function buildFallbackTimeline(request) {
 }
 
 export function ConsultantRequestDetailScreen({ navigation, route }) {
-    const request = route?.params?.request ?? consultantDefaultRequest;
+    const request = route?.params?.request ?? null;
+
+    if (!request) {
+        return (
+            <ConsultantScreenLayout activeNavKey="requests" headerSubtitle="Request details unavailable" headerTitle="Leave Request Details" navigation={navigation} showBackButton>
+                <View style={styles.pagePadding}>
+                    <DetailSectionCard title="Request Unavailable">
+                        <Text style={styles.heroDays}>This request is no longer available. Return to the requests list and open it again.</Text>
+                    </DetailSectionCard>
+                </View>
+            </ConsultantScreenLayout>
+        );
+    }
+
     const isReviewedRequest = request.statusTone === 'approved' || request.statusTone === 'rejected';
     const shouldShowManagerInformation = request.statusTone !== 'pending';
     const reviewerLabel = isReviewedRequest ? 'Reviewer Information' : 'Manager Information';
@@ -133,7 +145,6 @@ export function ConsultantRequestDetailScreen({ navigation, route }) {
             headerSubtitle="Review dates, approvals, and request history"
             headerTitle="Leave Request Details"
             navigation={navigation}
-            notificationCount={3}
             scrollContentStyle={styles.scrollContent}
             showBackButton
         >

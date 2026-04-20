@@ -555,21 +555,11 @@ export function ConsultantNewRequestScreen({ navigation, route }) {
                 headerSubtitle={isEditMode ? 'Update your pending out-of-office request' : 'Create and submit a new out-of-office request'}
                 headerTitle={isEditMode ? 'Edit Leave Request' : 'New Leave Request'}
                 navigation={navigation}
-                notificationCount={3}
                 scrollEnabled={!isLeaveTypeOpen}
                 scrollContentStyle={styles.scrollContent}
                 showBackButton
             >
                 <View style={styles.pagePadding}>
-                    {/* <DetailSectionCard title="Your Leave Balance">
-                    <View style={styles.balanceGrid}>
-                        <BalanceItem label="Available Days" value="18.5" />
-                        <BalanceItem label="Used This Year" tone="orange" value="6.5" />
-                        <BalanceItem label="Pending Requests" tone="gold" value="2" />
-                        <BalanceItem label="Annual Allowance" tone="slate" value="25" />
-                    </View>
-                </DetailSectionCard> */}
-
                     <DetailSectionCard title={isEditMode ? 'Edit Leave Request' : 'New Leave Request'}>
                         <View style={styles.leaveTypeFieldWrap}>
                             <FieldLabel>Leave Type *</FieldLabel>

@@ -22,7 +22,7 @@ export function DashboardTopBar({
     sidebarItems = [],
     sidebarTitle = 'Navigation',
     sidebarSubtitle,
-    sidebarProfileName = 'Sarah Connor',
+    sidebarProfileName = 'User',
     sidebarProfileMeta,
     sidebarSignOutLabel = 'Sign Out',
     onSidebarSignOut,

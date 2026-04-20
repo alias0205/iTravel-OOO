@@ -317,6 +317,27 @@ export async function fetchApprovalRequests({ page = 1, perPage = 15, status, to
     });
 }
 
+export async function fetchApprovedCalendarRequests({ token, perPage = 100, maxPages = 20 }) {
+    const items = [];
+    let currentPage = 1;
+    let lastPage = 1;
+
+    do {
+        const result = await fetchApprovalRequests({
+            page: currentPage,
+            perPage,
+            status: 'approved',
+            token,
+        });
+
+        items.push(...result.items);
+        lastPage = result.meta.lastPage;
+        currentPage += 1;
+    } while (currentPage <= lastPage && currentPage <= maxPages);
+
+    return items;
+}
+
 export async function fetchApprovalRequestsByAdmin({ adminId, page = 1, perPage = 15, status, token }) {
     return fetchPaginatedApprovalCollection({
         endpoint: OUT_OF_OFFICE_APPROVALS_ENDPOINT,

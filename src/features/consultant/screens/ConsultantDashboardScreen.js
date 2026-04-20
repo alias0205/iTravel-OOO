@@ -1,14 +1,15 @@
+import { useCallback, useMemo, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, Text, View } from 'react-native';
 
 import { getApprovalDurationBreakdown } from '../../approval/utils/approvalDurationUtils';
 import { ConsultantScreenLayout } from '../components/ConsultantScreenLayout';
-import { consultantRecentRequests } from '../data/consultantRequests';
+import { fetchOutOfOfficeRequestCounts, fetchOutOfOfficeRequests } from '../utils/outOfOfficeApi';
 import { useAuthSession } from '../../auth/context/AuthSessionContext';
 import { ConsultantDashboardScreenStyles as styles } from '../../../styles';
 import { DashboardSectionHeader } from '../../../shared/components/dashboard/DashboardSectionHeader';
 import { MetricStatCard } from '../../../shared/components/dashboard/MetricStatCard';
-import { QuickStatCard } from '../../../shared/components/dashboard/QuickStatCard';
 import { RequestCard } from '../../../shared/components/dashboard/RequestCard';
 
 function getCompactDurationBreakdown(request) {
@@ -22,15 +23,103 @@ function getCompactDurationBreakdown(request) {
 }
 
 export function ConsultantDashboardScreen({ navigation }) {
-    const { authProfile } = useAuthSession();
+    const { authProfile, session, signOut } = useAuthSession();
+    const [isLoading, setIsLoading] = useState(true);
+    const [loadError, setLoadError] = useState('');
+    const [recentRequests, setRecentRequests] = useState([]);
+    const [requestCounts, setRequestCounts] = useState({ all: 0, pending: 0, approved: 0, rejected: 0 });
+
+    const loadDashboard = useCallback(() => {
+        if (!session?.token) {
+            setRecentRequests([]);
+            setRequestCounts({ all: 0, pending: 0, approved: 0, rejected: 0 });
+            setIsLoading(false);
+            return () => {};
+        }
+
+        let isActive = true;
+
+        void (async () => {
+            setIsLoading(true);
+            setLoadError('');
+
+            try {
+                const [countsResult, requestsResult] = await Promise.all([
+                    fetchOutOfOfficeRequestCounts({ token: session.token }),
+                    fetchOutOfOfficeRequests({ page: 1, perPage: 5, token: session.token }),
+                ]);
+
+                if (!isActive) {
+                    return;
+                }
+
+                setRequestCounts(countsResult);
+                setRecentRequests(requestsResult.items);
+            } catch (error) {
+                if (!isActive) {
+                    return;
+                }
+
+                if (error?.status === 401) {
+                    await signOut();
+                    navigation?.reset({
+                        index: 0,
+                        routes: [{ name: 'Splash' }],
+                    });
+                    return;
+                }
+
+                setLoadError(error?.message || 'Unable to load your dashboard right now.');
+                setRecentRequests([]);
+                setRequestCounts({ all: 0, pending: 0, approved: 0, rejected: 0 });
+            } finally {
+                if (isActive) {
+                    setIsLoading(false);
+                }
+            }
+        })();
+
+        return () => {
+            isActive = false;
+        };
+    }, [navigation, session?.token, signOut]);
+
+    useFocusEffect(loadDashboard);
+
+    const activeApprovedRequest = useMemo(() => {
+        const now = Date.now();
+
+        return recentRequests.find((request) => {
+            if (request.statusTone !== 'approved') {
+                return false;
+            }
+
+            const start = new Date(request?.raw?.start_date || '').getTime();
+            const end = new Date(request?.raw?.end_date || '').getTime();
+
+            if (Number.isNaN(start) || Number.isNaN(end)) {
+                return false;
+            }
+
+            return start <= now && end >= now;
+        });
+    }, [recentRequests]);
+
+    const statusTitle = activeApprovedRequest ? 'Out of Office' : 'In Office';
+    const statusSubtitle = activeApprovedRequest ? activeApprovedRequest.dateRange : 'Available for assignments';
+    const statusAccentColor = activeApprovedRequest ? '#D97706' : '#16A34A';
+    const statusIconName = activeApprovedRequest ? 'airplane' : 'office-building';
+    const statusIconWrapStyle = activeApprovedRequest ? styles.statusHeaderIconWarning : null;
+    const statusBannerStyle = activeApprovedRequest ? styles.statusBannerWarning : null;
+    const statusTitleStyle = activeApprovedRequest ? styles.statusTitleWarning : null;
+    const statusSubtitleStyle = activeApprovedRequest ? styles.statusSubtitleWarning : null;
 
     return (
         <ConsultantScreenLayout
             activeNavKey="home"
             headerSubtitle="Manage your availability and time off"
-            headerTitle={`Welcome back, ${authProfile?.firstName ?? 'Sarah'}`}
+            headerTitle={`Welcome back, ${authProfile?.firstName ?? 'Consultant'}`}
             navigation={navigation}
-            notificationCount={3}
             scrollContentStyle={styles.scrollContent}
             topBarVariant="brand"
         >
@@ -39,34 +128,24 @@ export function ConsultantDashboardScreen({ navigation }) {
                     <View style={styles.statusHeaderRow}>
                         <Text style={styles.cardHeading}>Current Status</Text>
 
-                        <View style={styles.statusHeaderIcon}>
-                            <MaterialCommunityIcons color="#16A34A" name="office-building" size={18} />
+                        <View style={[styles.statusHeaderIcon, statusIconWrapStyle]}>
+                            <MaterialCommunityIcons color={statusAccentColor} name={statusIconName} size={18} />
                         </View>
                     </View>
 
-                    <View style={styles.statusBanner}>
+                    <View style={[styles.statusBanner, statusBannerStyle]}>
                         <View>
-                            <Text style={styles.statusTitle}>In Office</Text>
-                            <Text style={styles.statusSubtitle}>Available for assignments</Text>
+                            <Text style={[styles.statusTitle, statusTitleStyle]}>{statusTitle}</Text>
+                            <Text style={[styles.statusSubtitle, statusSubtitleStyle]}>{statusSubtitle}</Text>
                         </View>
-                        <View style={styles.statusDot} />
+                        <View style={[styles.statusDot, { backgroundColor: statusAccentColor }]} />
                     </View>
 
                     <View style={styles.metricRow}>
-                        <MetricStatCard subtitle="days remaining" title="Annual Leave" value="3" />
+                        <MetricStatCard subtitle="submitted" title="All Requests" value={String(requestCounts.all)} />
                         <View style={styles.metricSpacer} />
-                        <MetricStatCard subtitle="Requests" title="Pending" tone="neutral" value="2" />
+                        <MetricStatCard subtitle="requests" title="Pending" tone="neutral" value={String(requestCounts.pending)} />
                     </View>
-
-                    {/* <View style={styles.statusQuickStatsWrap}>
-                        <Text style={styles.statusQuickStatsTitle}>Quick Stats</Text>
-
-                        <View style={styles.quickStatsRow}>
-                            <QuickStatCard icon="calendar-month" subtitle="days off" title="This Month" value="3" />
-                            <View style={styles.quickStatsSpacer} />
-                            <QuickStatCard icon="clock-time-three-outline" subtitle="request" title="Pending" tone="purple" value="1" />
-                        </View>
-                    </View> */}
                 </View>
 
                 <Pressable onPress={() => navigation.navigate('ConsultantNewRequest')} style={styles.primaryActionCard}>
@@ -84,41 +163,35 @@ export function ConsultantDashboardScreen({ navigation }) {
 
                 <DashboardSectionHeader actionLabel="View All" onActionPress={() => navigation.navigate('ConsultantRequestList')} title="Recent Requests" />
 
-                {consultantRecentRequests.map((request) => (
-                    <RequestCard
-                        dateRange={request.dateRange}
-                        detail={getCompactDurationBreakdown(request)}
-                        duration={request.duration}
-                        icon={request.icon}
-                        iconColor={request.iconColor}
-                        key={request.id}
-                        meta={request.meta}
-                        onPress={() => navigation.navigate('ConsultantRequestDetail', { request })}
-                        statusLabel={request.statusLabel}
-                        statusTone={request.statusTone}
-                        title={request.title}
-                    />
-                ))}
+                {loadError ? <Text style={styles.errorState}>{loadError}</Text> : null}
+                {!loadError && isLoading ? <Text style={styles.infoState}>Loading recent requests...</Text> : null}
+                {!loadError && !isLoading && recentRequests.length === 0 ? <Text style={styles.infoState}>No requests yet.</Text> : null}
 
-                {/* <DashboardSectionHeader title="Upcoming Time Off" />
+                {!loadError && !isLoading
+                    ? recentRequests.map((request) => (
+                          <RequestCard
+                              dateRange={request.dateRange}
+                              detail={getCompactDurationBreakdown(request)}
+                              duration={request.duration}
+                              icon={request.icon}
+                              iconColor={request.iconColor}
+                              key={request.id}
+                              meta={request.meta}
+                              onPress={() => navigation.navigate('ConsultantRequestDetail', { request })}
+                              statusLabel={request.statusLabel}
+                              statusTone={request.statusTone}
+                              title={request.title}
+                          />
+                      ))
+                    : null}
 
-                <View style={styles.upcomingCard}>
-                    <View style={styles.upcomingTopRow}>
-                        <View>
-                            <Text style={styles.upcomingLabel}>Next Absence</Text>
-                            <Text style={styles.upcomingDates}>Dec 23 - Dec 27</Text>
-                        </View>
-
-                        <View style={styles.upcomingIconWrap}>
-                            <MaterialCommunityIcons color="#FFFFFF" name="calendar-month" size={22} />
-                        </View>
+                {loadError ? (
+                    <View style={styles.retryWrap}>
+                        <Pressable onPress={() => loadDashboard()} style={styles.retryButton}>
+                            <Text style={styles.retryButtonText}>Try Again</Text>
+                        </Pressable>
                     </View>
-
-                    <View style={styles.upcomingMetaRow}>
-                        <MaterialCommunityIcons color="#D8F2ED" name="beach" size={16} />
-                        <Text style={styles.upcomingMetaText}>Annual Leave · 5 days</Text>
-                    </View>
-                </View> */}
+                ) : null}
             </View>
         </ConsultantScreenLayout>
     );

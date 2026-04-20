@@ -91,14 +91,14 @@ export function ApprovalScreenLayout({
         <SafeAreaView style={styles.safeArea}>
             <DashboardTopBar
                 avatarPressRouteName="ApprovalSettings"
-                avatarLabel={authProfile?.initials ?? 'MJ'}
+                avatarLabel={authProfile?.initials ?? 'AP'}
                 avatarSource={authProfile?.avatarSource}
                 leftIconName="menu"
                 notificationCount={resolvedNotificationCount}
                 onNotificationPress={() => navigation?.navigate('ApprovalNotifications')}
                 onSidebarSignOut={handleSidebarSignOut}
-                sidebarProfileMeta={`${authProfile?.title ?? 'Manager'}, ${authProfile?.department ?? 'Nutrastat'}`}
-                sidebarProfileName={authProfile?.fullName ?? 'Michael Johnson'}
+                sidebarProfileMeta={[authProfile?.title, authProfile?.department].filter(Boolean).join(', ') || 'Approval Personnel'}
+                sidebarProfileName={authProfile?.fullName ?? 'Approval User'}
                 sidebarItems={navItems}
                 sidebarSubtitle="Nutrastat"
                 sidebarTitle="iTravel OOO"

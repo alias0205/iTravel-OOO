@@ -11,29 +11,6 @@ import { LEAVE_TYPE_ICON } from '../../../shared/constants/leaveTypeIcon';
 import { StatusBadge } from '../../../shared/components/dashboard/StatusBadge';
 import { ApprovalRequestReviewScreenStyles as styles } from '../../../styles';
 
-const defaultRequest = {
-    avatarLabel: 'SJ',
-    name: 'Sarah Johnson',
-    role: 'Senior Marketing Specialist',
-    department: 'Marketing Department',
-    office: 'London Office',
-    manager: 'David Smith',
-    employeeId: 'MKT-2019-045',
-    leaveLabel: 'Annual Leave',
-    leaveToneKey: 'annual',
-    dateRange: 'Dec 20 - Dec 27, 2024',
-    duration: '8 days',
-    durationLabel: '8 business days',
-    submittedAt: 'Dec 15, 2024, 2:30 PM',
-    reason: 'Family vacation to celebrate holidays. Planning to visit parents and extended family during Christmas week.',
-    daysAvailable: '15',
-    daysRequested: '8',
-    daysRemaining: '7',
-    usedThisYear: '10',
-    annualLeaveUsage: '18/25 days',
-    annualLeaveUsagePercent: 72,
-};
-
 const leaveTypeColors = {
     annual: { backgroundColor: '#F2E8FF', color: '#7D32DB' },
     sick: { backgroundColor: '#FDECEC', color: '#D33A33' },
@@ -150,31 +127,28 @@ function SummaryRow({ label, value, trailingTag }) {
     );
 }
 
-function BalanceMetric({ value, label, tone = 'default' }) {
-    return (
-        <View style={styles.balanceMetric}>
-            <Text
-                style={[
-                    styles.balanceMetricValue,
-                    tone === 'orange' ? styles.balanceMetricValueOrange : null,
-                    tone === 'green' ? styles.balanceMetricValueGreen : null,
-                    tone === 'slate' ? styles.balanceMetricValueSlate : null,
-                ]}
-            >
-                {value}
-            </Text>
-            <Text style={styles.balanceMetricLabel}>{label}</Text>
-        </View>
-    );
-}
-
 export function ApprovalRequestReviewScreen({ navigation, route }) {
     const { session, signOut } = useAuthSession();
     const [comment, setComment] = useState('');
     const [pendingDecision, setPendingDecision] = useState(null);
     const [isSubmittingDecision, setIsSubmittingDecision] = useState(false);
 
-    const request = useMemo(() => ({ ...defaultRequest, ...(route?.params?.request ?? {}) }), [route?.params?.request]);
+    const request = useMemo(() => route?.params?.request ?? null, [route?.params?.request]);
+
+    if (!request) {
+        return (
+            <ApprovalScreenLayout activeNavKey="approvals" headerSubtitle="Request details unavailable" headerTitle="Review Request" navigation={navigation} showBackButton>
+                <View style={styles.pagePadding}>
+                    <View style={styles.sectionCard}>
+                        <View style={styles.sectionBody}>
+                            <Text style={styles.reasonText}>This request is no longer available. Return to the requests list and open it again.</Text>
+                        </View>
+                    </View>
+                </View>
+            </ApprovalScreenLayout>
+        );
+    }
+
     const leaveTone = leaveTypeColors[request.leaveToneKey] ?? leaveTypeColors.annual;
     const durationBreakdown = useMemo(() => getApprovalDurationBreakdown(request), [request]);
     const isReadOnlyRequest = request.statusTone === 'approved' || request.statusTone === 'rejected';
@@ -281,7 +255,6 @@ export function ApprovalRequestReviewScreen({ navigation, route }) {
             headerSubtitle={request.leaveLabel + ' Request'}
             headerTitle="Review Request"
             navigation={navigation}
-            notificationCount={5}
             scrollContentStyle={styles.scrollContent}
             showBackButton
         >
@@ -294,13 +267,13 @@ export function ApprovalRequestReviewScreen({ navigation, route }) {
                                     <Image source={request.avatarSource} style={styles.employeeAvatar} />
                                 ) : (
                                     <View style={styles.employeeAvatarFallback}>
-                                        <Text style={styles.employeeAvatarText}>{request.avatarLabel}</Text>
+                                        <Text style={styles.employeeAvatarText}>{request.avatarLabel || buildAvatarLabel(request.name)}</Text>
                                     </View>
                                 )}
 
                                 <View style={styles.employeeCopy}>
                                     <Text style={styles.employeeName}>{request.name}</Text>
-                                    <Text style={styles.employeeRole}>{request.role}</Text>
+                                    <Text style={styles.employeeRole}>{request.role || 'Consultant'}</Text>
                                 </View>
                             </View>
                         </View>

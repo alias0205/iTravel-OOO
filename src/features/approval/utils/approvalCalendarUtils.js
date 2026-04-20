@@ -2,120 +2,19 @@ export const weekdayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 export const monthLabels = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 export const legendItems = [
-    { key: 'approved', label: 'Approved', color: '#4B7BE8' },
-    { key: 'pending', label: 'Pending', color: '#F97316' },
+    { key: 'approved', label: 'Approved Request', color: '#4B7BE8' },
     { key: 'holiday', label: 'Public Holiday', color: '#A855F7' },
 ];
 
-const eventRecords = [
-    {
-        id: 'john-vacation',
-        leaveCode: 'JSM001',
-        shortLabel: 'John S.',
-        title: 'John Smith - Vacation',
-        summary: 'Dec 5-6, 2024',
-        type: 'approved',
-        dates: ['2024-12-05', '2024-12-06'],
-    },
-    {
-        id: 'maria-personal',
-        leaveCode: 'MGR001',
-        shortLabel: 'Maria G.',
-        title: 'Maria Garcia - Personal Day',
-        summary: 'Dec 13, 2024',
-        type: 'approved',
-        dates: ['2024-12-13', '2024-12-15'],
-    },
-    {
-        id: 'amy-annual',
-        leaveCode: 'AXC001',
-        shortLabel: 'Amy C.',
-        title: 'Amy Crew - Annual Leave',
-        summary: 'Dec 8-10, 2024',
-        type: 'approved',
-        dates: ['2024-12-08', '2024-12-09', '2024-12-10'],
-    },
-    {
-        id: 'callum-annual',
-        leaveCode: 'CXT001',
-        shortLabel: 'Callum T2.',
-        title: 'Callum Thurman - Annual Leave',
-        summary: 'Dec 9-17, 2024',
-        type: 'approved',
-        dates: ['2024-12-09', '2024-12-10', '2024-12-11', '2024-12-12', '2024-12-13', '2024-12-14', '2024-12-15', '2024-12-16', '2024-12-17'],
-    },
-    {
-        id: 'callum-personal',
-        leaveCode: 'CXT002',
-        shortLabel: 'Callum T1.',
-        title: 'Callum Thurman - Personal Leave',
-        summary: 'Dec 13-20, 2024',
-        type: 'approved',
-        dates: ['2024-12-13', '2024-12-14', '2024-12-15', '2024-12-16', '2024-12-17', '2024-12-18', '2024-12-19', '2024-12-20'],
-    },
-    {
-        id: 'callum-remote',
-        leaveCode: 'CXT003',
-        shortLabel: 'Callum T3.',
-        title: 'Callum Thurman - Remote Planning',
-        summary: 'Dec 14-21, 2024',
-        type: 'approved',
-        dates: ['2024-12-14', '2024-12-15', '2024-12-16', '2024-12-17', '2024-12-18', '2024-12-19', '2024-12-20', '2024-12-21'],
-    },
-    {
-        id: 'callum-sick',
-        leaveCode: 'CXT006',
-        shortLabel: 'Callum T4.',
-        title: 'Callum Thurman - Sick Leave',
-        summary: 'Dec 9-18, 2024',
-        type: 'approved',
-        dates: ['2024-12-09', '2024-12-10', '2024-12-11', '2024-12-12', '2024-12-13', '2024-12-14', '2024-12-15', '2024-12-16', '2024-12-17', '2024-12-18'],
-    },
-    {
-        id: 'george-remote',
-        leaveCode: 'GRM001',
-        shortLabel: 'George M.',
-        title: 'George Mason - Remote Planning',
-        summary: 'Dec 4-6, 2024',
-        type: 'pending',
-        dates: ['2024-12-04', '2024-12-05', '2024-12-06'],
-    },
-    {
-        id: 'graham-annual',
-        leaveCode: 'GLH001',
-        shortLabel: 'Graham H.',
-        title: 'Graham Hobson - Annual Leave',
-        summary: 'Dec 20-23, 2024',
-        type: 'approved',
-        dates: ['2024-12-20', '2024-12-21', '2024-12-22', '2024-12-23'],
-    },
-    {
-        id: 'jack-sick',
-        leaveCode: 'JSB001',
-        shortLabel: 'Jack B.',
-        title: 'Jack Baker - Sick Leave',
-        summary: 'Dec 11-12, 2024',
-        type: 'pending',
-        dates: ['2024-12-11', '2024-12-12'],
-    },
-];
-
-const holidayRecords = [
-    { id: 'christmas', date: '2024-12-25', title: 'Christmas Day', summary: 'Dec 25, 2024' },
-    { id: 'boxing-day', date: '2024-12-26', title: 'Boxing Day', summary: 'Dec 26, 2024' },
-    { id: 'new-year', date: '2025-01-01', title: "New Year's Day", summary: 'Jan 1, 2025' },
-];
-
 const DAY_WIDTH = 56;
-const calendarDataCache = new Map();
-const timelineLayoutCache = new Map();
+const TIMELINE_BAR_HEIGHT = 28;
+const TIMELINE_ROW_MIN_HEIGHT = 58;
+const TIMELINE_ROW_PADDING = 8;
+const TIMELINE_ROW_GAP = 6;
+const currentDate = new Date();
 
-export function buildAvailableYears(startYear = 2000, endYear = 2050) {
-    return Array.from({ length: endYear - startYear + 1 }, (_, index) => startYear + index);
-}
-
-export const initialMonth = new Date(2024, 11, 1);
-export const initialSelectedDate = '2024-12-18';
+export const initialMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+export const initialSelectedDate = formatDateKey(currentDate);
 
 export function formatDateKey(date) {
     const year = date.getFullYear();
@@ -125,8 +24,8 @@ export function formatDateKey(date) {
 }
 
 export function parseDateKey(dateKey) {
-    const [year, month, day] = dateKey.split('-').map(Number);
-    return new Date(year, month - 1, day);
+    const [year, month, day] = String(dateKey || '').split('-').map(Number);
+    return new Date(year, (month || 1) - 1, day || 1);
 }
 
 export function addDays(date, days) {
@@ -209,26 +108,231 @@ export function sameMonth(dateA, dateB) {
     return dateA.getFullYear() === dateB.getFullYear() && dateA.getMonth() === dateB.getMonth();
 }
 
-function buildEventMap(activeFilter) {
-    const eventMap = {};
+function normalizeDate(dateValue) {
+    if (!dateValue) {
+        return null;
+    }
 
-    eventRecords.forEach((event) => {
-        if (activeFilter !== 'all' && activeFilter !== event.type) {
-            return;
+    const parsedDate = dateValue instanceof Date ? new Date(dateValue) : new Date(dateValue);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+        return null;
+    }
+
+    return new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate());
+}
+
+function formatShortDate(dateValue) {
+    const parsedDate = normalizeDate(dateValue);
+
+    if (!parsedDate) {
+        return 'Date unavailable';
+    }
+
+    return parsedDate.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+    });
+}
+
+function slugify(value) {
+    return String(value || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+}
+
+function buildShortLabel(fullName) {
+    const parts = String(fullName || '').trim().split(/\s+/).filter(Boolean);
+
+    if (parts.length >= 2) {
+        return `${parts[0]} ${parts[1][0]}.`;
+    }
+
+    return parts[0] || 'Consultant';
+}
+
+function buildInitials(fullName) {
+    const parts = String(fullName || '').trim().split(/\s+/).filter(Boolean);
+
+    if (parts.length >= 2) {
+        return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase();
+    }
+
+    return (parts[0] || 'NA').slice(0, 2).toUpperCase();
+}
+
+function buildDateKeysBetween(startDateValue, endDateValue) {
+    const startDate = normalizeDate(startDateValue);
+    const endDate = normalizeDate(endDateValue);
+
+    if (!startDate || !endDate || startDate > endDate) {
+        return [];
+    }
+
+    const dateKeys = [];
+    const cursor = new Date(startDate);
+
+    while (cursor <= endDate) {
+        dateKeys.push(formatDateKey(cursor));
+        cursor.setDate(cursor.getDate() + 1);
+    }
+
+    return dateKeys;
+}
+
+function ensureArray(value) {
+    return Array.isArray(value) ? value : [];
+}
+
+function buildApprovedEventRecords(approvedRequests = []) {
+    return ensureArray(approvedRequests)
+        .filter((request) => request?.statusTone === 'approved')
+        .map((request) => {
+            const fullName = request?.name || request?.raw?.user?.name || 'Unknown Consultant';
+            const leaveLabel = request?.leaveLabel || 'Out of Office';
+            const startDate = request?.raw?.start_date || request?.start_date;
+            const endDate = request?.raw?.end_date || request?.end_date;
+
+            return {
+                dates: buildDateKeysBetween(startDate, endDate),
+                id: String(request?.id || `${fullName}-${startDate || 'request'}`),
+                name: fullName,
+                request,
+                shortLabel: buildShortLabel(fullName),
+                summary: request?.dateRange || formatDateRange(startDate, endDate),
+                title: `${fullName} - ${leaveLabel}`,
+                tone: 'approved',
+            };
+        })
+        .filter((event) => event.dates.length > 0);
+}
+
+function getEasterSunday(year) {
+    const century = Math.floor(year / 100);
+    const yearInCentury = year % 100;
+    const leapCentury = Math.floor(century / 4);
+    const centuryRemainder = century % 4;
+    const correction = Math.floor((century + 8) / 25);
+    const adjustedCorrection = Math.floor((century - correction + 1) / 3);
+    const goldenNumber = (19 * (year % 19) + century - leapCentury - adjustedCorrection + 15) % 30;
+    const leapYearsInCentury = Math.floor(yearInCentury / 4);
+    const yearRemainder = yearInCentury % 4;
+    const weekdayOffset = (32 + 2 * centuryRemainder + 2 * leapYearsInCentury - goldenNumber - yearRemainder) % 7;
+    const monthOffset = Math.floor(((year % 19) + 11 * goldenNumber + 22 * weekdayOffset) / 451);
+    const month = Math.floor((goldenNumber + weekdayOffset - 7 * monthOffset + 114) / 31);
+    const day = ((goldenNumber + weekdayOffset - 7 * monthOffset + 114) % 31) + 1;
+
+    return new Date(year, month - 1, day);
+}
+
+function getFirstMondayOfMonth(year, monthIndex) {
+    const date = new Date(year, monthIndex, 1);
+
+    while (date.getDay() !== 1) {
+        date.setDate(date.getDate() + 1);
+    }
+
+    return date;
+}
+
+function getLastMondayOfMonth(year, monthIndex) {
+    const date = new Date(year, monthIndex + 1, 0);
+
+    while (date.getDay() !== 1) {
+        date.setDate(date.getDate() - 1);
+    }
+
+    return date;
+}
+
+function addHolidayRecord(records, date, title) {
+    const dateKey = formatDateKey(date);
+
+    records.push({
+        date: dateKey,
+        id: `${dateKey}-${slugify(title)}`,
+        summary: formatShortDate(date),
+        title,
+    });
+}
+
+function addObservedHolidayRecord(records, usedDateKeys, date, title) {
+    const observedDate = new Date(date);
+
+    while (observedDate.getDay() === 0 || observedDate.getDay() === 6 || usedDateKeys.has(formatDateKey(observedDate))) {
+        observedDate.setDate(observedDate.getDate() + 1);
+    }
+
+    const dateKey = formatDateKey(observedDate);
+    usedDateKeys.add(dateKey);
+    addHolidayRecord(records, observedDate, title);
+}
+
+export function buildPublicHolidayRecords(startYear, endYear) {
+    const currentYearValue = new Date().getFullYear();
+    const firstYear = Number.isFinite(startYear) ? startYear : currentYearValue - 1;
+    const lastYear = Number.isFinite(endYear) ? endYear : currentYearValue + 2;
+    const holidayRecords = [];
+
+    for (let year = firstYear; year <= lastYear; year += 1) {
+        const usedObservedDates = new Set();
+        const easterSunday = getEasterSunday(year);
+
+        addObservedHolidayRecord(holidayRecords, usedObservedDates, new Date(year, 0, 1), "New Year's Day");
+        addHolidayRecord(holidayRecords, addDays(easterSunday, -2), 'Good Friday');
+        addHolidayRecord(holidayRecords, addDays(easterSunday, 1), 'Easter Monday');
+        addHolidayRecord(holidayRecords, getFirstMondayOfMonth(year, 4), 'Early May Bank Holiday');
+        addHolidayRecord(holidayRecords, getLastMondayOfMonth(year, 4), 'Spring Bank Holiday');
+        addHolidayRecord(holidayRecords, getLastMondayOfMonth(year, 7), 'Summer Bank Holiday');
+        addObservedHolidayRecord(holidayRecords, usedObservedDates, new Date(year, 11, 25), 'Christmas Day');
+        addObservedHolidayRecord(holidayRecords, usedObservedDates, new Date(year, 11, 26), 'Boxing Day');
+    }
+
+    return holidayRecords;
+}
+
+export function buildAvailableYears(approvedRequests = []) {
+    const currentYearValue = new Date().getFullYear();
+    const years = new Set([currentYearValue - 1, currentYearValue, currentYearValue + 1, currentYearValue + 2]);
+
+    ensureArray(approvedRequests).forEach((request) => {
+        const startDate = normalizeDate(request?.raw?.start_date || request?.start_date);
+        const endDate = normalizeDate(request?.raw?.end_date || request?.end_date);
+
+        if (startDate) {
+            years.add(startDate.getFullYear());
         }
 
-        event.dates.forEach((date) => {
-            if (!eventMap[date]) {
-                eventMap[date] = [];
+        if (endDate) {
+            years.add(endDate.getFullYear());
+        }
+    });
+
+    const sortedYears = [...years].sort((left, right) => left - right);
+    const minYear = sortedYears[0] ?? currentYearValue;
+    const maxYear = sortedYears[sortedYears.length - 1] ?? currentYearValue;
+
+    return Array.from({ length: maxYear - minYear + 1 }, (_, index) => minYear + index);
+}
+
+function buildEventMap(approvedRequests) {
+    const eventMap = {};
+
+    buildApprovedEventRecords(approvedRequests).forEach((event) => {
+        event.dates.forEach((dateKey) => {
+            if (!eventMap[dateKey]) {
+                eventMap[dateKey] = [];
             }
 
-            eventMap[date].push({
-                id: event.id,
+            eventMap[dateKey].push({
+                id: `${event.id}-${dateKey}`,
                 label: event.shortLabel,
-                title: event.title,
+                request: event.request,
                 summary: event.summary,
-                tone: event.displayTone ?? event.type,
-                type: event.type,
+                title: event.title,
+                tone: event.tone,
             });
         });
     });
@@ -236,66 +340,48 @@ function buildEventMap(activeFilter) {
     return eventMap;
 }
 
-function buildHolidayMap(activeFilter) {
-    if (activeFilter !== 'all' && activeFilter !== 'holiday') {
-        return {};
-    }
-
-    return holidayRecords.reduce((accumulator, holiday) => {
+function buildHolidayMap(publicHolidayRecords = []) {
+    return ensureArray(publicHolidayRecords).reduce((accumulator, holiday) => {
         accumulator[holiday.date] = holiday;
         return accumulator;
     }, {});
 }
 
-function buildFallbackUpcomingItems(activeFilter) {
-    const events = eventRecords
-        .filter((event) => activeFilter === 'all' || activeFilter === event.type)
+function buildFallbackUpcomingItems(approvedRequests, publicHolidayRecords, selectedDateKey) {
+    const referenceDateKey = selectedDateKey || initialSelectedDate;
+    const requestItems = buildApprovedEventRecords(approvedRequests)
+        .filter((event) => event.dates[event.dates.length - 1] >= referenceDateKey)
         .map((event) => ({
+            date: event.summary,
+            dateKey: event.dates[0],
+            highlighted: false,
             id: event.id,
             name: event.title,
-            date: event.summary,
-            tone: event.type,
-            highlighted: false,
+            request: event.request,
+            tone: 'approved',
         }));
 
-    if (activeFilter === 'all' || activeFilter === 'holiday') {
-        holidayRecords.forEach((holiday) => {
-            events.push({
-                id: holiday.id,
-                name: holiday.title,
-                date: holiday.summary,
-                tone: 'holiday',
-                highlighted: false,
-            });
-        });
-    }
+    const holidayItems = ensureArray(publicHolidayRecords)
+        .filter((holiday) => holiday.date >= referenceDateKey)
+        .map((holiday) => ({
+            date: holiday.summary,
+            dateKey: holiday.date,
+            highlighted: false,
+            id: holiday.id,
+            name: holiday.title,
+            tone: 'holiday',
+        }));
 
-    return events.slice(0, 5);
+    return [...requestItems, ...holidayItems]
+        .sort((left, right) => left.dateKey.localeCompare(right.dateKey))
+        .slice(0, 5);
 }
 
-function getCalendarData(activeFilter) {
-    if (calendarDataCache.has(activeFilter)) {
-        return calendarDataCache.get(activeFilter);
-    }
-
-    const eventMap = buildEventMap(activeFilter);
-    const holidayMap = buildHolidayMap(activeFilter);
-    const visibleEvents = eventRecords.filter((event) => activeFilter === 'all' || activeFilter === event.type);
-    const value = {
-        eventMap,
-        fallbackUpcomingItems: buildFallbackUpcomingItems(activeFilter),
-        holidayMap,
-        visibleEvents,
-    };
-
-    calendarDataCache.set(activeFilter, value);
-    return value;
-}
-
-export function buildMonthCells(monthDate, selectedDateKey, activeFilter) {
+export function buildMonthCells(monthDate, selectedDateKey, approvedRequests, publicHolidayRecords) {
     const firstDayOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
     const gridStart = addDays(firstDayOfMonth, -firstDayOfMonth.getDay());
-    const { eventMap, holidayMap } = getCalendarData(activeFilter);
+    const eventMap = buildEventMap(approvedRequests);
+    const holidayMap = buildHolidayMap(publicHolidayRecords);
 
     return Array.from({ length: 42 }, (_, index) => {
         const currentDate = addDays(gridStart, index);
@@ -314,37 +400,46 @@ export function buildMonthCells(monthDate, selectedDateKey, activeFilter) {
     });
 }
 
-export function buildUpcomingItems(activeFilter, selectedDateKey) {
-    const { eventMap, fallbackUpcomingItems, holidayMap } = getCalendarData(activeFilter);
-    const selectedEvents = (eventMap[selectedDateKey] ?? []).map((event) => ({
-        id: event.id,
-        name: event.title,
-        date: event.summary,
-        tone: event.type,
-        highlighted: false,
-    }));
+export function buildUpcomingItems(selectedMonth, approvedRequests, publicHolidayRecords) {
+    const eventMap = buildEventMap(approvedRequests);
+    const holidayMap = buildHolidayMap(publicHolidayRecords);
+    const todayDateKey = formatDateKey(new Date());
+    const monthStartDate = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
+    const monthEndDate = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0);
+    const monthStartKey = formatDateKey(monthStartDate);
+    const monthEndKey = formatDateKey(monthEndDate);
+    const requestItems = Object.entries(eventMap)
+        .filter(([dateKey]) => dateKey >= todayDateKey && dateKey >= monthStartKey && dateKey <= monthEndKey)
+        .flatMap(([dateKey, events]) =>
+            events.map((event) => ({
+                id: `${event.id}-${dateKey}`,
+                name: event.title,
+                date: event.summary,
+                dateKey,
+                request: event.request,
+                tone: event.tone,
+                highlighted: false,
+            }))
+        );
 
-    const selectedHoliday = holidayMap[selectedDateKey];
-
-    if (selectedHoliday) {
-        selectedEvents.push({
-            id: selectedHoliday.id,
-            name: selectedHoliday.title,
-            date: selectedHoliday.summary,
+    const holidayItems = Object.entries(holidayMap)
+        .filter(([dateKey]) => dateKey >= todayDateKey && dateKey >= monthStartKey && dateKey <= monthEndKey)
+        .map(([dateKey, holiday]) => ({
+            id: holiday.id,
+            name: holiday.title,
+            date: holiday.summary,
+            dateKey,
             tone: 'holiday',
             highlighted: false,
-        });
-    }
+        }));
 
-    if (selectedEvents.length) {
-        return selectedEvents;
-    }
-
-    return fallbackUpcomingItems;
+    return [...requestItems, ...holidayItems]
+        .sort((left, right) => left.dateKey.localeCompare(right.dateKey))
+        .slice(0, 5);
 }
 
 function getEventDateRange(event) {
-    const sortedDates = [...event.dates].sort();
+    const sortedDates = [...event.dates].sort((left, right) => left.localeCompare(right));
 
     return {
         startDateKey: sortedDates[0],
@@ -383,48 +478,14 @@ function getConsultantCode(label, fallbackIndex) {
     return compactLabel || `CONS${fallbackIndex + 1}`;
 }
 
-function getEventLeaveCode(event, fallbackIndex) {
-    const explicitCode = String(event?.leaveCode || event?.requestCode || event?.code || '')
-        .trim()
-        .toUpperCase();
-
-    if (explicitCode) {
-        return explicitCode;
-    }
-
-    return `${getConsultantCode(event?.shortLabel, fallbackIndex).slice(0, 3)}${String(fallbackIndex + 1).padStart(3, '0')}`;
-}
-
 function getLeaveToneKey(title) {
     const source = String(title || '').toLowerCase();
-
-    if (source.includes('sick')) {
-        return 'sick';
-    }
-
-    if (source.includes('business')) {
-        return 'business';
-    }
-
-    if (source.includes('remote')) {
-        return 'remote';
-    }
 
     return 'annual';
 }
 
-function getTimelineRequestStatus(type) {
-    if (type === 'pending') {
-        return { statusTone: 'pending', statusLabel: 'Pending' };
-    }
-
-    return { statusTone: 'approved', statusLabel: 'Approved' };
-}
-
-function buildTimelineRequest(event, consultantName, consultantCode, eventIndex, startDateKey, endDateKey) {
-    const leaveCode = getEventLeaveCode(event, eventIndex);
+function buildTimelineRequest(event, consultantName, consultantCode, startDateKey, endDateKey) {
     const leaveLabel = getLeaveLabelFromTitle(event.title);
-    const { statusTone, statusLabel } = getTimelineRequestStatus(event.type);
 
     return {
         id: event.id,
@@ -436,26 +497,25 @@ function buildTimelineRequest(event, consultantName, consultantCode, eventIndex,
         dateRange: formatDateRange(startDateKey, endDateKey),
         duration: getDurationLabel(startDateKey, endDateKey),
         durationLabel: getDurationLabel(startDateKey, endDateKey),
-        submittedAt: event.summary || 'Recently submitted',
+        submittedAt: event.request?.submittedAt || event.summary || 'Recently submitted',
         reason: leaveLabel,
-        reviewComment: statusTone === 'approved' ? 'Approved leave request.' : 'Pending leave request.',
-        employeeId: leaveCode,
-        statusTone,
-        statusLabel,
-        reviewerName: statusTone === 'approved' ? 'Approval Team' : '',
-        raw: {
+        reviewComment: event.request?.reviewComment || 'Approved leave request.',
+        employeeId: event.request?.employeeId || consultantCode,
+        statusTone: 'approved',
+        statusLabel: 'Approved',
+        reviewerName: event.request?.reviewerName || 'Approval Team',
+        raw: event.request?.raw || {
             id: event.id,
             start_date: startDateKey,
             end_date: endDateKey,
-            review: statusTone === 'approved' ? { reviewer: { name: 'Approval Team' } } : undefined,
         },
     };
 }
 
-export function buildTimelineRows(monthDate, activeFilter) {
+export function buildTimelineRows(monthDate, approvedRequests) {
     const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
     const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
-    const { visibleEvents } = getCalendarData(activeFilter);
+    const visibleEvents = buildApprovedEventRecords(approvedRequests);
     const rowMap = new Map();
 
     visibleEvents.forEach((event, eventIndex) => {
@@ -482,51 +542,80 @@ export function buildTimelineRows(monthDate, activeFilter) {
 
         rowMap.get(consultantName).events.push({
             id: event.id,
-            label: getEventLeaveCode(event, eventIndex),
+            label: event.request?.leaveLabel || getLeaveLabelFromTitle(event.title),
             startDateKey,
             endDateKey,
-            tone: event.displayTone ?? event.type,
+            tone: event.tone,
             title: event.title,
-            request: buildTimelineRequest(event, consultantName, consultantCode, eventIndex, startDateKey, endDateKey),
+            request: buildTimelineRequest(event, consultantName, consultantCode, startDateKey, endDateKey),
         });
     });
 
     return [...rowMap.values()].sort((left, right) => left.name.localeCompare(right.name));
 }
 
-export function buildTimelineLayout(monthDate, activeFilter, dayWidth = DAY_WIDTH) {
-    const cacheKey = `${monthDate.getFullYear()}-${monthDate.getMonth()}-${activeFilter}-${dayWidth}`;
+function buildPositionedTimelineEvents(rowEvents, days, dayWidth) {
+    const laneEndDates = [];
 
-    if (timelineLayoutCache.has(cacheKey)) {
-        return timelineLayoutCache.get(cacheKey);
-    }
+    return [...rowEvents]
+        .sort((left, right) => {
+            if (left.startDateKey !== right.startDateKey) {
+                return left.startDateKey.localeCompare(right.startDateKey);
+            }
 
-    const daysInMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).getDate();
-    const days = Array.from({ length: daysInMonth }, (_, index) => new Date(monthDate.getFullYear(), monthDate.getMonth(), index + 1));
-    const rows = buildTimelineRows(monthDate, activeFilter).map((row) => ({
-        ...row,
-        positionedEvents: row.events.map((item) => {
+            return left.endDateKey.localeCompare(right.endDateKey);
+        })
+        .map((item) => {
             const startDate = parseDateKey(item.startDateKey);
             const endDate = parseDateKey(item.endDateKey);
             const visibleStart = startDate < days[0] ? days[0] : startDate;
             const visibleEnd = endDate > days[days.length - 1] ? days[days.length - 1] : endDate;
+            const visibleStartKey = formatDateKey(visibleStart);
+            const visibleEndKey = formatDateKey(visibleEnd);
             const startOffset = visibleStart.getDate() - 1;
             const spanDays = visibleEnd.getDate() - visibleStart.getDate() + 1;
+            let laneIndex = laneEndDates.findIndex((laneEndDate) => visibleStartKey > laneEndDate);
+
+            if (laneIndex < 0) {
+                laneIndex = laneEndDates.length;
+            }
+
+            laneEndDates[laneIndex] = visibleEndKey;
 
             return {
                 ...item,
+                laneIndex,
                 left: startOffset * dayWidth,
+                top: TIMELINE_ROW_PADDING + laneIndex * (TIMELINE_BAR_HEIGHT + TIMELINE_ROW_GAP),
                 width: Math.max(spanDays * dayWidth - 6, 50),
             };
-        }),
-    }));
+        });
+}
 
-    const value = {
+function buildTimelineRowLayout(row, days, dayWidth) {
+    const positionedEvents = buildPositionedTimelineEvents(row.events, days, dayWidth);
+    const laneCount = positionedEvents.reduce((maxLaneCount, item) => Math.max(maxLaneCount, item.laneIndex + 1), 0);
+    const height = Math.max(
+        TIMELINE_ROW_MIN_HEIGHT,
+        TIMELINE_ROW_PADDING * 2 + laneCount * TIMELINE_BAR_HEIGHT + Math.max(laneCount - 1, 0) * TIMELINE_ROW_GAP
+    );
+
+    return {
+        ...row,
+        height,
+        positionedEvents,
+    };
+}
+
+export function buildTimelineLayout(monthDate, approvedRequests, dayWidth = DAY_WIDTH) {
+
+    const daysInMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).getDate();
+    const days = Array.from({ length: daysInMonth }, (_, index) => new Date(monthDate.getFullYear(), monthDate.getMonth(), index + 1));
+    const rows = buildTimelineRows(monthDate, approvedRequests).map((row) => buildTimelineRowLayout(row, days, dayWidth));
+
+    return {
         days,
         rows,
         trackWidth: days.length * dayWidth,
     };
-
-    timelineLayoutCache.set(cacheKey, value);
-    return value;
 }

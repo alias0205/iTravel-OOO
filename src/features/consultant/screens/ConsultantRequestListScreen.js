@@ -113,7 +113,6 @@ export function ConsultantRequestListScreen({ navigation }) {
             headerSubtitle="Track every leave submission and status change"
             headerTitle="All Requests"
             navigation={navigation}
-            notificationCount={3}
             showBackButton
             useScrollView={false}
         >

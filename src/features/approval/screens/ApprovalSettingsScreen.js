@@ -255,7 +255,6 @@ export function ApprovalSettingsScreen({ navigation }) {
             headerSubtitle="Manage your preferences"
             headerTitle="Settings"
             navigation={navigation}
-            notificationCount={8}
             showNotification={false}
             showBackButton
             scrollContentStyle={styles.scrollContent}

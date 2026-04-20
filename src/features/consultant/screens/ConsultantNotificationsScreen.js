@@ -79,7 +79,7 @@ const NotificationCard = memo(function NotificationCard({ notification, onAction
                 <View style={styles.notificationCopy}>
                     <View style={styles.notificationTitleRow}>
                         <Text style={styles.notificationTitle}>{notification.title}</Text>
-                        {appearance.dot ? <View style={[styles.notificationDot, { backgroundColor: appearance.dot }]} /> : null}
+                        {notification.unread ? <View style={[styles.notificationDot, { backgroundColor: appearance.accent }]} /> : null}
                     </View>
 
                     <Text style={styles.notificationMessage}>{notification.message}</Text>

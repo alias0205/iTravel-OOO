@@ -41,6 +41,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
+    statusHeaderIconWarning: {
+        backgroundColor: '#FEF3C7',
+    },
     statusBanner: {
         borderWidth: 1,
         borderColor: '#BBF7D0',
@@ -53,6 +56,10 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         marginBottom: 16,
     },
+    statusBannerWarning: {
+        borderColor: '#FCD34D',
+        backgroundColor: '#FFFBEB',
+    },
     statusTitle: {
         color: '#1D6F2E',
         fontSize: 16,
@@ -60,10 +67,16 @@ const styles = StyleSheet.create({
         fontWeight: '800',
         marginBottom: 4,
     },
+    statusTitleWarning: {
+        color: '#B45309',
+    },
     statusSubtitle: {
         color: '#22C55E',
         fontSize: 16,
         lineHeight: 22,
+    },
+    statusSubtitleWarning: {
+        color: '#D97706',
     },
     statusDot: {
         width: 13,
@@ -76,6 +89,37 @@ const styles = StyleSheet.create({
     },
     metricSpacer: {
         width: 12,
+    },
+    infoState: {
+        color: '#64748B',
+        fontSize: 15,
+        lineHeight: 22,
+        paddingVertical: 12,
+        textAlign: 'center',
+    },
+    errorState: {
+        color: '#B42318',
+        fontSize: 15,
+        lineHeight: 22,
+        paddingTop: 4,
+        paddingBottom: 12,
+    },
+    retryWrap: {
+        paddingBottom: 12,
+    },
+    retryButton: {
+        minHeight: 44,
+        borderRadius: 12,
+        backgroundColor: '#0A6B63',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 16,
+    },
+    retryButtonText: {
+        color: '#FFFFFF',
+        fontSize: 14,
+        lineHeight: 20,
+        fontWeight: '800',
     },
     statusQuickStatsWrap: {
         marginTop: 18,

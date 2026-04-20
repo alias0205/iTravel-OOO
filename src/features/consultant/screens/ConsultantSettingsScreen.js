@@ -267,7 +267,6 @@ export function ConsultantSettingsScreen({ navigation }) {
             headerSubtitle="Manage your preferences"
             headerTitle="Settings"
             navigation={navigation}
-            notificationCount={3}
             showNotification={false}
             showBackButton
             scrollContentStyle={styles.scrollContent}

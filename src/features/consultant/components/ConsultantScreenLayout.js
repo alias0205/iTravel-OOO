@@ -53,7 +53,6 @@ export function ConsultantScreenLayout({
     onBackPress,
     headerRight,
     showNotification = false,
-    notificationCount = 3,
     topBarVariant = 'light',
     topBarProps,
     scrollContentStyle,
@@ -93,14 +92,14 @@ export function ConsultantScreenLayout({
         <SafeAreaView style={styles.safeArea}>
             <DashboardTopBar
                 avatarPressRouteName="ConsultantSettings"
-                avatarLabel={authProfile?.initials ?? 'SC'}
+                avatarLabel={authProfile?.initials ?? 'CU'}
                 avatarSource={authProfile?.avatarSource}
                 leftIconName="menu"
                 notificationCount={resolvedNotificationCount}
                 onNotificationPress={() => navigation?.navigate('ConsultantNotifications')}
                 onSidebarSignOut={handleSidebarSignOut}
                 sidebarProfileMeta={`${authProfile?.title ?? 'Consultant'}${authProfile?.department ? `, ${authProfile.department}` : ''}`}
-                sidebarProfileName={authProfile?.fullName ?? 'Sarah Connor'}
+                sidebarProfileName={authProfile?.fullName ?? 'Consultant User'}
                 sidebarItems={navItems}
                 sidebarSubtitle="iTravel OOO"
                 sidebarTitle="Consultant Navigation"

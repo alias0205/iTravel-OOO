@@ -192,7 +192,6 @@ export function ApprovalRequestListScreen({ navigation, route }) {
                 headerSubtitle="Track every consultant request"
                 headerTitle="All Requests"
                 navigation={navigation}
-                notificationCount={8}
                 showBackButton
                 useScrollView={false}
             >
