@@ -4,7 +4,7 @@
         "slug": "nutrastat",
         "version": "1.0.0",
         "orientation": "portrait",
-        "icon": "./assets/CG.png",
+        "icon": "./assets/g4-android.png",
         "userInterfaceStyle": "light",
         "splash": {
             "image": "./assets/CG.png",
@@ -17,7 +17,7 @@
         "android": {
             "adaptiveIcon": {
                 "backgroundColor": "#ffffff",
-                "foregroundImage": "./assets/android-icon-foreground.png",
+                "foregroundImage": "./assets/g4-android.png",
                 "backgroundImage": "./assets/android-icon-background.png",
                 "monochromeImage": "./assets/android-icon-monochrome.png"
             }

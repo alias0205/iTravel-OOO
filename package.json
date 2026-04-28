@@ -1,33 +1,40 @@
 {
-    "name": "mobile",
-    "version": "1.0.0",
-    "main": "index.js",
-    "scripts": {
-        "start": "expo start",
-        "android": "expo start --android",
-        "ios": "expo start --ios",
-        "web": "expo start --web",
-        "format": "prettier . --write",
-        "format:check": "prettier . --check"
-    },
-    "dependencies": {
-        "@react-native-community/netinfo": "^11.5.2",
-        "@react-native-community/datetimepicker": "^8.6.0",
-        "@react-navigation/native": "^7.1.33",
-        "@react-navigation/native-stack": "^7.14.4",
-        "expo": "~55.0.5",
-        "expo-secure-store": "^55.0.9",
-        "expo-status-bar": "~55.0.4",
-        "pusher-js": "^8.4.0",
-        "react": "19.2.0",
-        "react-dom": "^19.2.0",
-        "react-native": "0.83.2",
-        "react-native-safe-area-context": "~5.6.2",
-        "react-native-screens": "~4.23.0",
-        "react-native-web": "^0.21.2"
-    },
-    "private": true,
-    "devDependencies": {
-        "prettier": "^3.8.1"
-    }
+  "name": "mobile",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "build": "npm run build:web",
+    "build:web": "expo export --platform web --clear",
+    "build:android": "npm run build:android:arm64",
+    "build:android:arm64": "set \"JAVA_HOME=C:\\Program Files\\Android\\Android Studio\\jbr\" && set \"PATH=%JAVA_HOME%\\bin;%PATH%\" && cd android && gradlew.bat assembleRelease -PreactNativeArchitectures=arm64-v8a",
+    "build:android:aab": "set \"JAVA_HOME=C:\\Program Files\\Android\\Android Studio\\jbr\" && set \"PATH=%JAVA_HOME%\\bin;%PATH%\" && cd android && gradlew.bat bundleRelease",
+    "build:ios": "npx eas-cli build --platform ios",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check"
+  },
+  "dependencies": {
+    "@react-native-community/datetimepicker": "^8.6.0",
+    "@react-native-community/netinfo": "^11.5.2",
+    "@react-navigation/native": "^7.1.33",
+    "@react-navigation/native-stack": "^7.14.4",
+    "expo": "~55.0.5",
+    "expo-secure-store": "^55.0.9",
+    "expo-splash-screen": "~55.0.19",
+    "expo-status-bar": "~55.0.4",
+    "pusher-js": "^8.4.0",
+    "react": "19.2.0",
+    "react-dom": "^19.2.0",
+    "react-native": "0.83.2",
+    "react-native-safe-area-context": "~5.6.2",
+    "react-native-screens": "~4.23.0",
+    "react-native-web": "^0.21.2"
+  },
+  "private": true,
+  "devDependencies": {
+    "prettier": "^3.8.1"
+  }
 }
