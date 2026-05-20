@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     timelineConsultantHeader: {
-        width: 132,
+        width: 122,
         height: 52,
         paddingHorizontal: 8,
         paddingVertical: 12,
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
         borderBottomColor: '#E5E7EB',
     },
     timelineConsultantCell: {
-        width: 132,
+        width: 122,
         height: 58,
         paddingHorizontal: 8,
         paddingVertical: 10,

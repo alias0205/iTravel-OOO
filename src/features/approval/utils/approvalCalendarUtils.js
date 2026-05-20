@@ -153,6 +153,14 @@ function buildShortLabel(fullName) {
     return parts[0] || 'Consultant';
 }
 
+function resolveConsultantInitials(request, fullName) {
+    const initials = String(request?.avatarLabel || request?.raw?.user?.initials || '')
+        .replace(/[^A-Za-z0-9]/g, '')
+        .toUpperCase();
+
+    return initials || buildShortLabel(fullName);
+}
+
 function buildInitials(fullName) {
     const parts = String(fullName || '').trim().split(/\s+/).filter(Boolean);
 
@@ -200,7 +208,7 @@ function buildApprovedEventRecords(approvedRequests = []) {
                 id: String(request?.id || `${fullName}-${startDate || 'request'}`),
                 name: fullName,
                 request,
-                shortLabel: buildShortLabel(fullName),
+                shortLabel: resolveConsultantInitials(request, fullName),
                 summary: request?.dateRange || formatDateRange(startDate, endDate),
                 title: `${fullName} - ${leaveLabel}`,
                 tone: 'approved',
@@ -489,7 +497,7 @@ function buildTimelineRequest(event, consultantName, consultantCode, startDateKe
 
     return {
         id: event.id,
-        avatarLabel: consultantCode.slice(0, 2) || 'OO',
+        avatarLabel: consultantCode || 'OO',
         name: consultantName,
         role: 'Consultant',
         leaveLabel,
@@ -534,7 +542,7 @@ export function buildTimelineRows(monthDate, approvedRequests) {
             rowMap.set(consultantName, {
                 id: consultantName,
                 name: consultantName,
-                shortName: getConsultantShortName(consultantName),
+                shortName: consultantCode,
                 code: consultantCode,
                 events: [],
             });

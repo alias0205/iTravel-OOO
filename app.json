@@ -1,29 +1,38 @@
 {
-    "expo": {
-        "name": "nutrastat",
-        "slug": "nutrastat",
-        "version": "1.0.0",
-        "orientation": "portrait",
-        "icon": "./assets/g4-android.png",
-        "userInterfaceStyle": "light",
-        "splash": {
-            "image": "./assets/CG.png",
-            "resizeMode": "contain",
-            "backgroundColor": "#ffffff"
-        },
-        "ios": {
-            "supportsTablet": true
-        },
-        "android": {
-            "adaptiveIcon": {
-                "backgroundColor": "#ffffff",
-                "foregroundImage": "./assets/g4-android.png",
-                "backgroundImage": "./assets/android-icon-background.png",
-                "monochromeImage": "./assets/android-icon-monochrome.png"
-            }
-        },
-        "web": {
-            "favicon": "./assets/SD.png"
-        }
+  "expo": {
+    "name": "nutrastat",
+    "slug": "nutrastat",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/g4-android.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/CG.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "bundleIdentifier": "com.nutrastat.mobile",
+      "supportsTablet": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#ffffff",
+        "foregroundImage": "./assets/g4-android.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "web": {
+      "favicon": "./assets/SD.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "5cadb303-710d-45a9-91d5-0dec5ad3f22c"
+      }
     }
+  }
 }

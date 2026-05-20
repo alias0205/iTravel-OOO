@@ -18,6 +18,14 @@ const requestTabs = [
     { key: 'by-me', label: 'By Me' },
 ];
 
+const defaultActiveTab = 'all';
+
+function getRouteActiveTab(route) {
+    const nextTab = route?.params?.activeTab;
+
+    return requestTabs.some((tab) => tab.key === nextTab) ? nextTab : defaultActiveTab;
+}
+
 const ApprovalRequestListItem = memo(function ApprovalRequestListItem({ currentUserEmail, currentUserName, item, onApprove, onOpen }) {
     const reviewerLabel = useMemo(() => {
         if (!(item.statusTone === 'approved' || item.statusTone === 'rejected') || !item.reviewerName) {
@@ -76,7 +84,7 @@ function areApprovalRequestListItemPropsEqual(previousProps, nextProps) {
 export function ApprovalRequestListScreen({ navigation, route }) {
     const { authProfile, session, signOut, user } = useAuthSession();
     const adminId = user?.id;
-    const [activeTab, setActiveTab] = useState('all');
+    const [activeTab, setActiveTab] = useState(() => getRouteActiveTab(route));
     const [pendingApprovalRequest, setPendingApprovalRequest] = useState(null);
     const [isApprovingRequest, setIsApprovingRequest] = useState(false);
     const refreshKey = route?.params?.refreshKey;
@@ -130,6 +138,16 @@ export function ApprovalRequestListScreen({ navigation, route }) {
 
         refresh();
     }, [refresh, refreshKey]);
+
+    useEffect(() => {
+        const nextTab = route?.params?.activeTab;
+
+        if (!requestTabs.some((tab) => tab.key === nextTab) || nextTab === activeTab) {
+            return;
+        }
+
+        setActiveTab(nextTab);
+    }, [route?.params?.activeTab]);
 
     const handleLoadMore = useCallback(() => {
         void (async () => {

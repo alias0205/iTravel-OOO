@@ -101,8 +101,8 @@ export function ConsultantScreenLayout({
                 sidebarProfileMeta={`${authProfile?.title ?? 'Consultant'}${authProfile?.department ? `, ${authProfile.department}` : ''}`}
                 sidebarProfileName={authProfile?.fullName ?? 'Consultant User'}
                 sidebarItems={navItems}
-                sidebarSubtitle="iTravel OOO"
-                sidebarTitle="Consultant Navigation"
+                sidebarSubtitle="Nutrastat"
+                sidebarTitle="iTravel OOO"
                 showBrandIcon
                 showNotification={showNotification}
                 subtitle="Nutrastat"

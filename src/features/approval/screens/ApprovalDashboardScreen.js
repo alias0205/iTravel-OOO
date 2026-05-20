@@ -37,7 +37,7 @@ export function ApprovalDashboardScreen({ navigation }) {
         try {
             const [counts, recent] = await Promise.all([
                 fetchApprovalRequestCounts({ token: session.token }),
-                fetchApprovalRequests({ page: 1, perPage: 5, token: session.token }),
+                fetchApprovalRequests({ page: 1, perPage: 5, status: 'pending', token: session.token }),
             ]);
 
             setRequestCounts(counts);
@@ -101,12 +101,28 @@ export function ApprovalDashboardScreen({ navigation }) {
                     <DashboardSearchInput onChangeText={setSearchQuery} placeholder="Search by name or department..." value={searchQuery} />
 
                     <View style={styles.metricsRow}>
-                        <ApprovalMetricCard icon="clock-time-three" title="Pending Requests" tone="orange" value={String(requestCounts.pending || 0)} />
+                        <ApprovalMetricCard
+                            icon="clock-time-three"
+                            onPress={() => navigation.navigate('ApprovalRequestList', { activeTab: 'pending' })}
+                            title="Pending Requests"
+                            tone="orange"
+                            value={String(requestCounts.pending || 0)}
+                        />
                         <View style={styles.metricsSpacer} />
-                        <ApprovalMetricCard icon="account-group" title="Reviewed Requests" tone="blue" value={String(reviewedCount)} />
+                        <ApprovalMetricCard
+                            icon="account-group"
+                            onPress={() => navigation.navigate('ApprovalRequestList', { activeTab: 'by-me' })}
+                            title="Reviewed Requests"
+                            tone="blue"
+                            value={String(reviewedCount)}
+                        />
                     </View>
 
-                    <DashboardSectionHeader actionLabel="View All" onActionPress={() => navigation.navigate('ApprovalRequestList')} title="Recent Requests" />
+                    <DashboardSectionHeader
+                        actionLabel="View All"
+                        onActionPress={() => navigation.navigate('ApprovalRequestList', { activeTab: 'pending' })}
+                        title="Pending Requests"
+                    />
 
                     {loadError ? (
                         <View style={styles.retryWrap}>
@@ -116,7 +132,7 @@ export function ApprovalDashboardScreen({ navigation }) {
                             </Pressable>
                         </View>
                     ) : isLoading ? (
-                        <Text style={styles.infoState}>Loading recent requests...</Text>
+                        <Text style={styles.infoState}>Loading pending requests...</Text>
                     ) : filteredRequests.length ? (
                         filteredRequests.map((request) => (
                             <ApprovalRequestCard
@@ -140,7 +156,7 @@ export function ApprovalDashboardScreen({ navigation }) {
                             />
                         ))
                     ) : (
-                        <Text style={styles.infoState}>{searchQuery.trim() ? 'No requests match your search.' : 'No recent requests available.'}</Text>
+                        <Text style={styles.infoState}>{searchQuery.trim() ? 'No requests match your search.' : 'No pending requests available.'}</Text>
                     )}
                 </View>
             </ApprovalScreenLayout>

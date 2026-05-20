@@ -159,6 +159,14 @@ function buildAvatarLabel(fullName) {
     return `${parts[0]?.[0] || ''}${parts[1]?.[0] || ''}`.toUpperCase() || 'OO';
 }
 
+function resolveAvatarLabel(person, fullName) {
+    const initials = String(person?.initials || '')
+        .replace(/[^A-Za-z0-9]/g, '')
+        .toUpperCase();
+
+    return initials || buildAvatarLabel(fullName);
+}
+
 function buildActionError(payload, fallbackMessage, status) {
     const message =
         (typeof payload?.message === 'string' && payload.message.trim()) ||
@@ -194,7 +202,7 @@ function normalizeApprovalRequest(record, options = {}) {
     const person = getPerson(record);
     const reason = record?.out_of_office_reason || record?.reason || {};
     const fullName = person?.name || [person?.first_name, person?.last_name].filter(Boolean).join(' ').trim() || 'Unknown Employee';
-    const avatarLabel = buildAvatarLabel(fullName);
+    const avatarLabel = resolveAvatarLabel(person, fullName);
     const statusTone = getStatusTone(record?.status);
     const statusLabel = getStatusLabel(record?.status, statusTone);
     const leaveToneKey = getLeaveToneKey(reason);
